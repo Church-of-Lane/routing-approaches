@@ -41,6 +41,8 @@ ScaffoldingReadMe.txt
 
 *.DS_Store
 
+.vscode
+
 # Others
 ~$*
 *~
