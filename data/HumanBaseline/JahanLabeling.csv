@@ -1,0 +1,70 @@
+"[11:11] <Seveas> Amaranth, the US peer is probably breaking the law",,
+[11:11] <Seveas> but an ES or NL peer downloading it not,,
+[11:11] <monchichi> http://www.msnbc.msn.com/id/8419601/,,
+[11:11] <IceDC571> the US peer is just stupid for wanting to share movies in the first place,,
+[11:11] <Seveas> The downloader is breaking the implicit rules of good netizenship though :),,
+[11:11] <IceDC571> why cant you just buy the full quality dvd from a shop?,,
+"[11:12] <Amaranth> i buy my music off iTunes (support the artists, easier) and watch movies in the theater (their entertainment system is nicer than mine)",,
+[11:12] <Edulix> IceDC571: that's his business :P,,
+"[11:12] <Amaranth> the US peer is breaking US law, of course",,
+"[11:12] <monchichi> Seveas, check the link, people in netherlands got rolled on too",Seveas,1
+[11:12] <Edulix> IceDC571: are you really doing that question ? maybe becuase it's not cheap ?,IceDC571,1
+"[11:13] <Amaranth> anyway, this is all highly off-topic and is actually one of the banned topics, so yeah",Edulix,0.5
+[11:13] <Edulix> hehe ok,Amaranth,0.7
+"[11:13] <Seveas> monchichi, those aren't downloaders, but crackers :)",monchichi,1
+[11:13] <IceDC571> Amaranth: would libdvdcss2 be illegal in the US?,Amaranth,1
+"[11:14] <monchichi> true, but they targeted crackers because they cant possibly target all the downloaders",Seveas,1
+[11:14] <IceDC571> decss i mean,Amaranth,0.3
+[11:14] <Amaranth> yes,IceDC571,0.9
+[11:14] <Amaranth> canada too,IceDC571,0.8
+[11:14] <Amaranth> and much of the EU,IceDC571,0.7
+"[11:14] <Seveas> Amaranth, well, to be really strict: this kind of discussion is not one of the 'banned topics' since we're not supporting people trying to do illegal things ;)",Amaranth,1
+"[11:14] <sobralense> Ok ok, U have great theaters with a brand new movie playing .. but here...",Amaranth,0.2
+[11:14] <cikilin> can anybody help me see a dvd on linux?,sobralense,0.3
+[11:14] <IceDC571> so how do I view dvds in linux legally? pshh..,Amaranth,0.2
+[11:15] <Amaranth> IceDC571: You pay $30 for this program that only works on one version of one distro.,IceDC571,1
+[11:15] <IceDC571> Amaranth: whats that?,Amaranth,1
+\=== nitroXL [~tekkno@BSN-77-45-12.dsl.siol.net]  has joined #ubuntu,Everyone,1
+[11:15] <Amaranth> IceDC571: No idea.,IceDC571,1
+"[11:15] <Amaranth> IceDC571: The distro is turbolinux, iirc.",IceDC571,1
+[11:16] <Edulix> monchichi: maybe it was illegal to distribute the things but not to download them ?,monchichi,1
+[11:16] <IceDC571> i dont really watch dvds on the computer anyway,Amaranth,0.5
+[11:16] <IceDC571> so i guess im good,Amaranth,0.4
+[11:16] <ailean> you can watch dvds in linux legally by paying a royalty,IceDC571,0.7
+[11:17] <Edulix> actually I belive some distros distribuced some parts of libdvdcss that are legal,ailean,0.7
+[11:17] <Edulix> so that you can play dvd but not rip it,ailean,0.7
+[11:17] <Amaranth> libdvdcss is not legal at all,Edulix,0.9
+[11:17] <Edulix> AMaranth: talk with linspire about that :P,Amaranth,1
+[11:17] <Amaranth> Edulix: They're nuts.,Edulix,1
+[11:18] <IceDC571> lol.. linspire wont be legal for long..,Edulix,0.8
+[11:18] <Amaranth> Breaking the encryption to play a movie is just as illegal as breaking the encryption to rip a movie.,Edulix,0.4
+[11:18] <IceDC571> i cant believe walmart gave in to their deal,Edulix,0.2
+"[11:19] <Edulix> IceDC571: I think that if they do that it's because it's legal, and they are surely more informed than me, I don't know about you...",IceDC571,1
+"[11:19] <Amaranth> Edulix: No, the guy that started linspire just likes to piss big people off.",Edulix,1
+[11:19] <IceDC571> linspire has been in court several times,Edulix,0.6
+[11:20] <monchichi> who owns the css license?,IceDC571,0.2
+[11:20] <ailean> me,monchichi,1
+[11:20] <Amaranth> dvdcca,monchichi,1
+[11:20] <monchichi> can i watch the movies i bought?,Amaranth,0.1
+[11:20] <monchichi> pllleease?,Amaranth,0.1
+"[11:20] <IceDC571> the css? i have no idea, decss.. no one",monchichi,0.5
+\=== Amaranth only knows about the DVDCCA because they sued a friend over DeCSS,Everyone,1
+\=== hannes_ [hannes@dna251-74.satp.customers.dnainternet.fi]  has joined #ubuntu,Everyone,1
+[11:22] <ailean> but surely the dvd libs are as legal as the openoffice word format?,IceDC571,0.4
+\=== mwe [~mwe@port462.ds1-ynoe.adsl.cybercity.dk]  has joined #ubuntu,Everyone,1
+[11:22] <Amaranth> no,aliean,0.8
+"[11:22] <ailean> openoffice have reverse engineered that, just as the dvd libs have been reverse engineered",Amaranth,0.5
+\=== Sionide [~sphinx@cpc4-hem12-6-0-cust227.lutn.cable.ntl.com]  has joined #ubuntu,Everyone,1
+\=== Heaviette|aw [~Heaviette@ip-114.net-81-220-9.versailles.rev.numericable.fr]  has joined #ubuntu,Everyone,1
+[11:23] <IceDC571> theres things you arent supposed to reverse engineer due to copyright laws,aliean,0.5
+"[11:23] <Amaranth> well, i suppose you could try to get in on the DMCA's reverse engineering clause, but no one has successfully done so yet",IceDC571,0.5
+"[11:23] <IceDC571> openoffice format isnt a reversed engineered word format, they're different",ailean,0.8
+"[11:23] <jeroen_> ailean, maybe, but US law is fucked up",ailean,1
+[11:23] <ailean> i know,jeroen_,0.8
+[11:23] <jeroen_> because it is encrypted it's evil,ailean,0.8
+[11:23] <Amaranth> plus iirc illegally releasing a trade secret doesn't make it lose it's trade secret status,jeroen_,0.6
+[11:24] <Edulix> IceDC571: if it isn't reverse enginereed then how did they achieve that ?,IceDC571,1
+\=== nico_32 [~nico@2002:5477:7843:5:2e0:18ff:fef4:bdd7]  has joined #ubuntu,Everyone,1
+[11:24] <ailean> online gambling is illegal - from a country with the biggest gambling industry in the world . . .,Edulix,0
+[11:24] <Amaranth> Edulix: They took the key out of a player,Edulix,1
+[11:24] <Amaranth> after that people figured out how to generate keys,Edulix,0.9
