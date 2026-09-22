@@ -39,8 +39,7 @@ ScaffoldingReadMe.txt
 # dotenv environment variables file
 .env
 
-*.DS_Storegyerfhd;s.'?
-'
+*.DS_Store
 
 # Others
 ~$*
