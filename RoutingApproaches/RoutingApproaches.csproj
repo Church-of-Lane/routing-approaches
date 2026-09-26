@@ -11,6 +11,7 @@
     <PackageReference Include="Lane.Core" Version="0.1.0" />
     <PackageReference Include="Lane.Node.Sdk" Version="0.1.0" />
     <PackageReference Include="Lane.Nodes.Protocol" Version="0.1.0" />
+    <PackageReference Include="pythonnet" Version="3.1.0" />
   </ItemGroup>
 
 </Project>
