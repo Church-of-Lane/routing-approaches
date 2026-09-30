@@ -68,23 +68,36 @@ class Symbolic:
  
         return match.group(1) if match is not None else None
  
-    def message_contains_name(self, message: str | None) -> float:
+    def message_contains_name(self, message: str | None, useSpellcheck: bool = False) -> float:
+        # if no message given, definetly no mention
         if not message:
             return 0
- 
+
+        # if the message contains name as perfect match, definetly mentions
         confidence = 1 if self.name in message else 0
- 
-        if confidence == 0:
-            confidence = 0.9 if self.name.lower() in message.lower() else 0
-            # add spellcheck, add capitalization blindness BUT check for if name
-            words = message.split()
- 
-            misspelt = [] #self.spellchecker.unknown(words)
- 
-            for misspelled in misspelt:
-                if self.spellchecker.correction(misspelled) == self.name:
-                    confidence = 0.5
-                    break
+
+        if confidence == 1:
+            return confidence
+
+        # if message contains name as almost perfect match (within case), probably mentions
+        confidence = 0.9 if self.name.lower() in message.lower() else 0
+
+        if confidence != 0:
+            return confidence
+
+        # spellcheck can be very laggy (relative to other stuff), so sometimes beneficial to not use
+        if not useSpellcheck:
+            return 0
+
+        # otherwise, see if name maybe mentions (within some typos)
+        words = message.split()
+
+        misspelt = self.spellchecker.unknown(words)
+
+        for misspelled in misspelt:
+            if self.spellchecker.correction(misspelled) == self.name:
+                confidence = 0.5
+                break
  
         return confidence
  
