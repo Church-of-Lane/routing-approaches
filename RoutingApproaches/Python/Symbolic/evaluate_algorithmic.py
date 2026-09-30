@@ -18,20 +18,21 @@ if __name__ == "__main__":
     for line in data:
         if len(window) == target:
             window.pop(0)
-        
+
         window.append(line)
 
-        if len(window) == target:
-            line = [(evaluator.get_name(), evaluator.score_text(window)) for evaluator in evaluators]
-            message_scores[window[-1]] = line
+        # Skip windows ending on a system line ("=== x has joined") -- there's no speaker to score
+        if len(window) == target and Symbolic.extract_username(window[-1]) is not None:
+            scores = [(evaluator.get_name(), evaluator.score_text(window)) for evaluator in evaluators]
+            message_scores[window[-1]] = scores
 
-            print(line)
-    
+            print(scores)
+
     print("\n\n")
 
     winners = []
 
     for message in message_scores:
         winners.append((message, max(message_scores[message], key=lambda x: x[1])))
-    
+
     print(winners)
