@@ -32,7 +32,12 @@ class Symbolic:
  
         if speaker == self.name:
             return 0
- 
+        
+        direct_score = self.message_contains_name(Symbolic.extract_message(responding_to))
+        if direct_score > 0:
+            return direct_score
+        
+     
         score = 0
         speaker_message_count = 0
  
