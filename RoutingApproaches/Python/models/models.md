@@ -113,3 +113,43 @@ recall     0.2197
 f1         0.3259
 auc        0.7269
 ```
+
+Oops, delete this model accidently. Retrain on old commit with `EPOCHS=5` if you care for it.
+
+# v2
+## Architecture
+
+## Models
+### stinky
+Trained with 5 epochs, default of the commit I am about to push. Based on its F1 score it appears to be doing quite bad, but also better than previous models! 
+So that's something. I believe it might do better just wtih more epochs, so I am going to try that. I also added validation scoring onto the history graphs, so
+it will be easier to tell what is happening with future models.
+
+#### Performance
+```
+=== Evaluating at cutoff 0.5 ===
+points     5993
+positives  801
+accuracy   0.8815
+precision  0.5958
+recall     0.3533
+f1         0.4436
+auc        0.7904
+```
+
+### stinkier
+This one I ran with 20 epochs, and the graph was genuinely shocking. It just gets worse and worse after each epoch. By the end, val_loss was like 70%. Horrific.
+
+Definite evidence of overfitting. I will lobotomize the model next.
+
+#### Performance
+```
+=== Evaluating at cutoff 0.5 ===
+points     5993
+positives  801
+accuracy   0.8557
+precision  0.4422
+recall     0.3059
+f1         0.3616
+auc        0.6781
+```
