@@ -153,3 +153,19 @@ recall     0.3059
 f1         0.3616
 auc        0.6781
 ```
+
+### butter
+This one had its `TEXT_VECTOR_SIZE` reduced to `8`, which did, at least for the first few epochs, appear to reduce overfitting. `EPOCH=20` still. For the next
+model, I will decrease its number of neurons more, and see if that helps.
+
+#### Performance
+```
+=== Evaluating at cutoff 0.5 ===
+points     5993
+positives  801
+accuracy   0.8752
+precision  0.5805
+recall     0.2385
+f1         0.3381
+auc        0.7017
+```
