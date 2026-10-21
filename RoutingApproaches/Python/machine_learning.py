@@ -224,7 +224,7 @@ class MachineLearning:
 
             epochs     = EPOCHS,
             verbose    = VERBOSE,
-            batch_size = BATCH_SIZE
+            batch_size = BATCH_SIZE,
             callbacks  = [TqdmCallback(verbose=2)]
         )
 
