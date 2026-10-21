@@ -115,8 +115,12 @@ def lines_to_messages(lines: list[str], replies_to: dict[int, list[int]] | None 
     ]
 
 
-def load_training_data(data_dir: Path = DATA_DIR) -> list[MessagedLog]:
+def load_messaged_split(split: str = "train", data_dir: Path = DATA_DIR) -> list[MessagedLog]:
     return [
         MessagedLog(annotated_log.name, lines_to_messages(annotated_log.lines, annotated_log.replies_to))
-        for annotated_log in load_split("train", data_dir)
+        for annotated_log in load_split(split, data_dir)
     ]
+
+
+def load_training_data(data_dir: Path = DATA_DIR) -> list[MessagedLog]:
+    return load_messaged_split("train", data_dir)

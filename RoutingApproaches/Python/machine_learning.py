@@ -5,7 +5,7 @@ import keras
 import numpy as np
 from keras.src.legacy.preprocessing.text import Tokenizer, tokenizer_from_json
 from keras.utils import pad_sequences
-from util import load_training_data, Message, lines_to_messages
+from util import load_training_data, load_messaged_split, Message, MessagedLog, lines_to_messages
 
 import re
 from time import time
@@ -13,13 +13,14 @@ from time import time
 from tqdm.keras import TqdmCallback
 
 SEED               = 1432516 # Zohar's favorite number
-EPOCHS             = 5
+EPOCHS             = 20
 VERBOSE            = 0
 HISTORY            = 5
 TOKENS_PER_MESSAGE = 32
 TEXT_VECTOR_SIZE   = 64
 ROUTING_CUTOFF     = 0.5
-BATCH_SIZE         = 32
+BATCH_SIZE         = 512
+VALIDATION_SPLIT   = "dev"
 
 SELF_TAG   = "xxself"
 OTHER_TAG  = "xxother"
@@ -137,12 +138,13 @@ class MachineLearning:
 
         text = keras.layers.Embedding             (self.vocab_size + 1, TEXT_VECTOR_SIZE)(      text_input)
         text =              MessagePooling        (                                     )(text, text_input)
-        text = keras.layers.GlobalAveragePooling1D(                                     )(text            )
+        text = keras.layers.LSTM                  (TEXT_VECTOR_SIZE                     )(text            )
 
         features = keras.layers.Dense(16, activation="relu")(features_input)
 
         inner = keras.layers.Concatenate()([text, features])
-        inner = keras.layers.Dense(64, activation="relu"   )(inner)
+        inner = keras.layers.Dense(16, activation="relu"   )(inner)
+        inner = keras.layers.Dense(8,  activation ="relu"  )(inner)
         out   = keras.layers.Dense(1,  activation="sigmoid")(inner)
 
         return keras.Model(inputs=[text_input, features_input], outputs=out)
@@ -167,22 +169,18 @@ class MachineLearning:
             "features": np.array(self.compute_features(window, person), dtype="float32")
         }
 
-    def train_model(self) -> tuple[keras.Model, dict]:
+    def format_data(self, logs: list[MessagedLog]) -> tuple[dict[str, np.ndarray], np.ndarray]:
         """
-        Trains the model with the specified hyperparameters
+        Builds the (window, person) points and labels for a set of logs
         """
-        # === Data formatting ===
-        print("=== Formatting data ===")
-        time_elapsed = time()
-
         x_text     = []
         x_features = []
-        t_train    = []
+        t          = []
 
-        for log in self.training_data:
+        for log in logs:
             window = []
 
-            for i, message in enumerate(log.messages):
+            for message in log.messages:
                 window.append(message)
 
                 if len(window) > HISTORY:
@@ -198,7 +196,26 @@ class MachineLearning:
 
                         x_text    .append(point["text"    ])
                         x_features.append(point["features"])
-                        t_train   .append(person in message.responders)
+                        t         .append(person in message.responders)
+
+        return (
+            {
+                "text"    : np.array(x_text,     dtype="int32"  ),
+                "features": np.array(x_features, dtype="float32")
+            },
+            np.array(t, dtype="float32").reshape(-1, 1)
+        )
+
+    def train_model(self) -> tuple[keras.Model, dict]:
+        """
+        Trains the model with the specified hyperparameters
+        """
+        # === Data formatting ===
+        print("=== Formatting data ===")
+        time_elapsed = time()
+
+        x_train, t_train = self.format_data(self.training_data)
+        x_valid, t_valid = self.format_data(load_messaged_split(VALIDATION_SPLIT))
 
         print(f"=== Finished formatting data (took {(time_elapsed := (time() - time_elapsed))}s) ===")
 
@@ -216,16 +233,14 @@ class MachineLearning:
         )
 
         history = model.fit(
-            {
-                "text"    : np.array(x_text,     dtype="int32"  ),
-                "features": np.array(x_features, dtype="float32")
-            },
-            np.array(t_train, dtype="float32").reshape(-1,  1),
+            x_train,
+            t_train,
 
-            epochs     = EPOCHS,
-            verbose    = VERBOSE,
-            batch_size = BATCH_SIZE,
-            callbacks  = [TqdmCallback(verbose=2)]
+            validation_data = (x_valid, t_valid),
+            epochs          = EPOCHS,
+            verbose         = VERBOSE,
+            batch_size      = BATCH_SIZE,
+            callbacks       = [TqdmCallback(verbose=2)]
         )
 
         return (model, history)
