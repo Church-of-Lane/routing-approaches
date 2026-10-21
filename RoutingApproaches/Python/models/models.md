@@ -169,3 +169,109 @@ recall     0.2385
 f1         0.3381
 auc        0.7017
 ```
+
+Accidently deleted the weights for this one to
+
+### butter 2
+Changed inner layer sizes to `4`.
+
+#### Performance
+```
+=== Evaluating at cutoff 0.5 ===
+points     5993
+positives  801
+accuracy   0.8735
+precision  0.5606
+recall     0.2484
+f1         0.3443
+auc        0.7293
+```
+
+### margerine
+Changed first inner layer size to `8`, and feature inner layer to `8`.
+
+At least until about the 3rd or 4th epoch, the val loss did go down, which is interesting. I do think the previous models were too complicated and just overfitting,
+but the val f1 score continuously went down, so I believe I need to reprioritize the metrics.
+
+#### Performance
+```
+=== Evaluating at cutoff 0.5 ===
+points     5993
+positives  801
+accuracy   0.8688
+precision  0.5424
+recall     0.1199
+f1         0.1963
+auc        0.6097
+```
+
+### quickshot
+Added early stopping based on the f1_val_score metric. It does perform better, but the f1 score ends up being just
+slightly above 0.5, so not much better than just guessing no each time.
+
+#### Performance
+```
+=== Evaluating at cutoff 0.5 ===
+points     5993
+positives  801
+accuracy   0.8874
+precision  0.5910
+recall     0.5106
+f1         0.5479
+auc        0.7268
+```
+
+### chicken pot pie
+Started weighing positives more based on what percentage of the validation set was positive. So 9x more. This worked GREAT! The training metrics look worse, but
+they are pairing with the validation metrics, so it seems we are no longer horrendously overfitting. On top of that, this stopped early at about 5 epochs, and in
+that time the f1 score did not decrease. So that is great.
+
+An interesting note about this model, is I tried evaluating it with different routing cutoffs, i.e. thresholds, and
+any cutoff >=.5 (increments of 0.1) gave the same evaluation. Ones below got worse, especially <=0.3, which all
+also had the same evaluation. I'm guessing that almost all outputs come out around either 0 or 0.5.
+
+Quickshot and chicken pot pie seem to perform almost the same, however.
+
+#### Performance
+```
+=== Evaluating at cutoff 0.5 ===
+points     5993
+positives  801
+accuracy   0.8874
+precision  0.5910
+recall     0.5106
+f1         0.5479
+auc        0.7278
+```
+
+### frog
+Same as above but removed the early stopping, so it ran on the full 20 epochs. It did go down, but interestingly near the end the val scores started to go up
+again. Due to that, I'm going to next try running this with 100 epochs, and see what happens.
+
+#### Performance
+```
+=== Evaluating at cutoff 0.5 ===
+points     5993
+positives  801
+accuracy   0.8223
+precision  0.3650
+recall     0.4457
+f1         0.4013
+auc        0.7027
+```
+
+### climber
+Same as above but with 100 epochs. After around 18 epochs, the val loss went up and up and up. All the way to 140% at the end! This is now achievable due to the
+class weight (training and validation loss are not comparable.) So it seems that more time to train was not what it needed.
+
+#### Performance
+```
+=== Evaluating at cutoff 0.5 ===
+points     5993
+positives  801
+accuracy   0.7255
+precision  0.2608
+recall     0.5743
+f1         0.3587
+auc        0.7085
+```

@@ -1,7 +1,7 @@
 import numpy as np
 
-from evaluate_machine_learning import compute_metrics, SPLIT
-from machine_learning import HISTORY, ROUTING_CUTOFF
+from evaluate_machine_learning import compute_metrics
+from machine_learning import HISTORY, ROUTING_CUTOFF, VALIDATION_SPLIT
 from symbolic import Symbolic
 from util import load_split, lines_to_messages
 
@@ -18,7 +18,7 @@ def score_data(evaluator_cache: dict[str, Symbolic]) -> tuple[np.ndarray, np.nda
     y_valid = []
     t_valid = []
 
-    for log in load_split(SPLIT):
+    for log in load_split(VALIDATION_SPLIT):
         messages = lines_to_messages(log.lines, log.replies_to)
 
         # symbolic works on raw lines, so keep the raw window alongside the parsed one
@@ -49,7 +49,7 @@ def score_data(evaluator_cache: dict[str, Symbolic]) -> tuple[np.ndarray, np.nda
 
 
 if __name__ == "__main__":
-    print(f"=== Scoring {SPLIT} data ===")
+    print(f"=== Scoring {VALIDATION_SPLIT} data ===")
     y, t = score_data({})
 
     print(f"=== Evaluating at cutoff {ROUTING_CUTOFF} ===")

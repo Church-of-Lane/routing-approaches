@@ -13,7 +13,7 @@ from time import time
 from tqdm.keras import TqdmCallback
 
 SEED               = 1432516 # Zohar's favorite number
-EPOCHS             = 20
+EPOCHS             = 100
 VERBOSE            = 0
 HISTORY            = 5
 TOKENS_PER_MESSAGE = 32
@@ -140,11 +140,11 @@ class MachineLearning:
         text =              MessagePooling        (                                     )(text, text_input)
         text = keras.layers.LSTM                  (TEXT_VECTOR_SIZE                     )(text            )
 
-        features = keras.layers.Dense(16, activation="relu")(features_input)
+        features = keras.layers.Dense(8, activation="relu")(features_input)
 
         inner = keras.layers.Concatenate()([text, features])
-        inner = keras.layers.Dense(16, activation="relu"   )(inner)
-        inner = keras.layers.Dense(8,  activation ="relu"  )(inner)
+        inner = keras.layers.Dense(8, activation="relu"   )(inner)
+        inner = keras.layers.Dense(4,  activation ="relu"  )(inner)
         out   = keras.layers.Dense(1,  activation="sigmoid")(inner)
 
         return keras.Model(inputs=[text_input, features_input], outputs=out)
@@ -229,8 +229,10 @@ class MachineLearning:
         model.compile(
             optimizer="adam",
             loss="binary_crossentropy",
-            metrics=[keras.metrics.F1Score(threshold=ROUTING_CUTOFF), keras.metrics.AUC()]
+            metrics=[keras.metrics.F1Score(threshold=ROUTING_CUTOFF, average="micro"), keras.metrics.AUC()]
         )
+
+        pos = float(np.mean(t_train))
 
         history = model.fit(
             x_train,
@@ -240,7 +242,11 @@ class MachineLearning:
             epochs          = EPOCHS,
             verbose         = VERBOSE,
             batch_size      = BATCH_SIZE,
-            callbacks       = [TqdmCallback(verbose=2)]
+            callbacks       = [
+                TqdmCallback(verbose=2),
+                keras.callbacks.EarlyStopping(monitor="val_f1_score", mode="max", patience=5, restore_best_weights=True)
+            ],
+            class_weight = {0: 1.0, 1: (1 - pos) / pos}
         )
 
         return (model, history)
