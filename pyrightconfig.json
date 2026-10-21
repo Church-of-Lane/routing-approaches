@@ -1,0 +1,13 @@
+{
+  "typeCheckingMode": "standard",
+  "venvPath": "RoutingApproaches/Python",
+  "venv": ".venv",
+  "executionEnvironments": [
+    {
+      "root": "RoutingApproaches/Python",
+      "extraPaths": [
+        "RoutingApproaches/Python/src"
+      ]
+    }
+  ]
+}
