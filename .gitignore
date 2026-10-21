@@ -63,3 +63,6 @@ nunit-*.xml
 node-key.pem
 
 __pycache__
+
+*.json
+*.h5

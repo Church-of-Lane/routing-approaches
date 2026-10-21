@@ -1,3 +1,4 @@
+import json
 import random
 
 import keras
@@ -7,16 +8,18 @@ from keras.utils import pad_sequences
 from util import load_training_data, Message, lines_to_messages
 
 import re
+from time import time
 
 from tqdm.keras import TqdmCallback
 
 SEED               = 1432516 # Zohar's favorite number
-EPOCHS             = 20
+EPOCHS             = 5
 VERBOSE            = 0
 HISTORY            = 5
 TOKENS_PER_MESSAGE = 32
 TEXT_VECTOR_SIZE   = 64
 ROUTING_CUTOFF     = 0.5
+BATCH_SIZE         = 32
 
 SELF_TAG   = "xxself"
 OTHER_TAG  = "xxother"
@@ -25,11 +28,14 @@ TARGET_TAG = "xxtarget"
 random     .seed           (SEED)
 keras.utils.set_random_seed(SEED)
 
+# Used for seeing how long different things take
+time_elapsed = 0
+
 """
 Things to do:
     - Compare models trained with different hyperparameters with validation set
     - Evaluate final model with test set
-    - Track precision and recall
+    - Add graph for training curve
 """
 
 class MessagePooling(keras.layers.Layer):
@@ -63,13 +69,31 @@ class MachineLearning:
             self.model      = self.get_model_architecture()
             self.model.load_weights(weight_path)
         else:
+            print("=== Loading training data ===")
+            time_elapsed = time()
+
             self.training_data = load_training_data()
+
+            print(f"=== Loaded training data (took {(time_elapsed := (time() - time_elapsed))}s) ===")
+            print( "=== Fitting tokenizer ===")
+            time_elapsed = time()
 
             self.tokenizer.fit_on_texts([m.text for log in self.training_data for m in log.messages])
             self.tokenizer.fit_on_texts([SELF_TAG, OTHER_TAG, TARGET_TAG])
 
+            print(f"=== Fitted tokenizer (took {(time_elapsed := (time() - time_elapsed))}s) ===")
+
             self.vocab_size = len(self.tokenizer.word_index)
-            self.model      = self.train_model()
+            self.model, history = self.train_model()
+
+            # save history to a file with timestamp as name
+            with open(filename := f"{int(time())}.json", "w") as file:
+                json.dump({k: np.asarray(v).tolist() for k, v in history.history.items()}, file)
+
+            print(f"=== Saved history to {filename} ===")
+
+            self.save_weights()
+            self.save_token_map()
 
 
     def tokenize(self, text: str, length: int = TOKENS_PER_MESSAGE):
@@ -143,12 +167,13 @@ class MachineLearning:
             "features": np.array(self.compute_features(window, person), dtype="float32")
         }
 
-    def train_model(self) -> keras.Model:
+    def train_model(self) -> tuple[keras.Model, dict]:
         """
         Trains the model with the specified hyperparameters
         """
         # === Data formatting ===
         print("=== Formatting data ===")
+        time_elapsed = time()
 
         x_text     = []
         x_features = []
@@ -175,9 +200,11 @@ class MachineLearning:
                         x_features.append(point["features"])
                         t_train   .append(person in message.responders)
 
-        print("=== Finished formatting data ===")
+        print(f"=== Finished formatting data (took {(time_elapsed := (time() - time_elapsed))}s) ===")
 
         print("Label imbalance: " + str(np.mean(t_train)))
+
+        print(f"=== Training {EPOCHS} epochs ===")
 
         model = self.get_model_architecture()
 
@@ -188,19 +215,20 @@ class MachineLearning:
             metrics=[keras.metrics.F1Score(threshold=ROUTING_CUTOFF), keras.metrics.AUC()]
         )
 
-        model.fit(
+        history = model.fit(
             {
                 "text"    : np.array(x_text,     dtype="int32"  ),
                 "features": np.array(x_features, dtype="float32")
             },
             np.array(t_train, dtype="float32").reshape(-1,  1),
 
-            epochs    = EPOCHS,
-            verbose   = VERBOSE,
-            callbacks = [TqdmCallback(verbose=2)]
+            epochs     = EPOCHS,
+            verbose    = VERBOSE,
+            batch_size = BATCH_SIZE
+            callbacks  = [TqdmCallback(verbose=2)]
         )
 
-        return model
+        return (model, history)
 
     def save_weights(self, filename: str = "routing.weights.h5") -> None:
         self.model.save_weights(filename)
