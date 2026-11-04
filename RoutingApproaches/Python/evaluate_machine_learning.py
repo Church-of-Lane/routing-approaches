@@ -4,6 +4,8 @@ import numpy as np
 from machine_learning import MachineLearning, ROUTING_CUTOFF, VALIDATION_SPLIT
 from util import load_messaged_split
 
+from time import time
+
 """
 Loads the trained model from disk and evaluates it against the validation (dev) split.
 
@@ -45,6 +47,8 @@ def compute_metrics(y: np.ndarray, t: np.ndarray, cutoff: float = ROUTING_CUTOFF
 if __name__ == "__main__":
     from sys import argv
 
+    start_time = time()
+
     weight_path = argv[1] if len(argv) > 1 else "routing.weights.h5"
     token_path  = argv[2] if len(argv) > 2 else "token_map.json"
 
@@ -56,3 +60,5 @@ if __name__ == "__main__":
     print(f"=== Evaluating at cutoff {ROUTING_CUTOFF} ===")
     for name, value in evaluate(model, x, t).items():
         print(f"{name:<10} {value:.4f}" if isinstance(value, float) else f"{name:<10} {value}")
+
+    print("In total, took " + str(time() - start_time))

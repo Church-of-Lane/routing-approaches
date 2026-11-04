@@ -5,6 +5,8 @@ from machine_learning import CANDIDATE_POOL, HISTORY, ROUTING_CUTOFF, VALIDATION
 from symbolic import Symbolic
 from util import Point, iter_points, load_split
 
+from time import time
+
 """
 Evaluates the symbolic approach against the validation (dev) split.
 
@@ -36,9 +38,13 @@ def score_point(point: Point, evaluator_cache: dict[str, Symbolic]) -> float:
 
 
 if __name__ == "__main__":
+    start_time = time()
+
     print(f"=== Scoring {VALIDATION_SPLIT} data ===")
     y, t = score_data({})
 
     print(f"=== Evaluating at cutoff {ROUTING_CUTOFF} ===")
     for name, value in compute_metrics(y, t).items():
         print(f"{name:<10} {value:.4f}" if isinstance(value, float) else f"{name:<10} {value}")
+
+    print("In total, took " + str(time() - start_time))
