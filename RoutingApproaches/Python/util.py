@@ -51,6 +51,17 @@ class AnnotatedLog:
         return [parent for parent in self.replies_to.get(index, []) if parent != index]
 
 
+@dataclass
+class Point:
+    log: str
+    # index of the message being routed, which is the last line of the window
+    index: int
+    candidate: str
+    window: list[str]
+    # did the candidate actually reply to the message
+    label: bool
+
+
 def load_lines(path: Path) -> list[str]:
     data = path.read_text(encoding="utf-8", errors="replace").split("\n")
 
@@ -124,3 +135,23 @@ def load_messaged_split(split: str = "train", data_dir: Path = DATA_DIR) -> list
 
 def load_training_data(data_dir: Path = DATA_DIR) -> list[MessagedLog]:
     return load_messaged_split("train", data_dir)
+
+
+def iter_points(log: AnnotatedLog, pool: int):
+    """
+    Builds the (window, candidate) points of a log, the same way as MachineLearning.format_data:
+    one point per author in the last `pool` messages other than the speaker, for every annotated non-system message
+    """
+    messages = lines_to_messages(log.lines, log.replies_to)
+
+    for index, message in enumerate(messages):
+        if index + 1 < pool or not message.annotated or message.username is None:
+            continue
+
+        start = index + 1 - pool
+
+        authors = set(m.username for m in messages[start:index + 1] if m.username is not None)
+        authors.discard(message.username)
+
+        for person in sorted(authors):
+            yield Point(log.name, index, person, log.lines[start:index + 1], person in message.responders)

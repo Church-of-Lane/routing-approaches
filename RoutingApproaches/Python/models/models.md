@@ -275,3 +275,89 @@ recall     0.5743
 f1         0.3587
 auc        0.7085
 ```
+
+# v3
+Changed to use  a different learning rate, got usernames for training from a larger
+pool than the history window (which means the results here aren't directly comparable to
+those from before.)
+
+## Models
+
+### a
+
+#### Performance
+```
+=== Evaluating at cutoff 0.5 ===
+points     15908
+positives  1159
+accuracy   0.9165
+precision  0.4272
+recall     0.4280
+f1         0.4276
+auc        0.6831
+```
+
+### b
+History size -> 20
+
+#### Performance
+```
+=== Evaluating at cutoff 0.5 ===
+points     15908
+positives  1159
+accuracy   0.9004
+precision  0.3801
+recall     0.5824
+f1         0.4600
+auc        0.8155
+```
+
+### c
+Candidate pool -> 100
+
+Values here aren't directly comparable to other models since there is a different number of points
+
+#### Performance
+```
+=== Evaluating at cutoff 0.5 ===
+points     43020
+positives  1257
+accuracy   0.9269
+precision  0.2402
+recall     0.6945
+f1         0.3569
+auc        0.8679
+```
+
+### d
+Candidate pool -> 20
+Tokens per message -> 0
+
+Appears that the text input does do something! Will run another test with it completely removed from architecture, though.
+
+#### Performance
+```
+=== Evaluating at cutoff 0.5 ===
+points     15908
+positives  1159
+accuracy   0.8616
+precision  0.3024
+recall     0.6885
+f1         0.4202
+auc        0.8509
+```
+
+### e
+No text input layers
+
+#### Performance
+```
+=== Evaluating at cutoff 0.5 ===
+points     15908
+positives  1159
+accuracy   0.8784
+precision  0.3323
+recall     0.6635
+f1         0.4428
+auc        0.8519
+```

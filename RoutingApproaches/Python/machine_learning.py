@@ -15,11 +15,13 @@ from tqdm.keras import TqdmCallback
 SEED               = 1432516 # Zohar's favorite number
 EPOCHS             = 100
 VERBOSE            = 0
-HISTORY            = 5
+HISTORY            = 20 # messages the text model reads
+CANDIDATE_POOL     = 20 # messages candidates (and their features) are drawn from
 TOKENS_PER_MESSAGE = 32
 TEXT_VECTOR_SIZE   = 8
 ROUTING_CUTOFF     = 0.5
 BATCH_SIZE         = 512
+LEARNING_RATE      = 3e-4
 VALIDATION_SPLIT   = "dev"
 
 SELF_TAG   = "xxself"
@@ -34,10 +36,15 @@ time_elapsed = 0
 
 """
 Things to do:
-    - Compare models trained with different hyperparameters with validation set
     - Evaluate final model with test set
-    - Add graph for training curve
 """
+
+def name_pattern(person: str) -> str:
+    """
+    Matches a username as a whole word. Lookarounds instead of \\b, since \\b fails next to
+    the non-word characters IRC nicks often start or end with (Steve^, benh`, [[mandrix]])
+    """
+    return rf"(?<!\w){re.escape(person)}(?!\w)"
 
 class MessagePooling(keras.layers.Layer):
     """
@@ -113,7 +120,7 @@ class MachineLearning:
         Computes the features of a window, given a target person
         """
         authors   = [message.username for message in window]
-        mentioned = [re.search(rf"\b{re.escape(person.lower())}\b", m.text.lower()) is not None for m in window]
+        mentioned = [re.search(name_pattern(person), m.text, flags=re.IGNORECASE) is not None for m in window]
 
         last_spoke = len(window)
 
@@ -154,19 +161,20 @@ class MachineLearning:
         Tags a message relative to the target person
         """
         tag  = SELF_TAG if message.username == person else OTHER_TAG
-        text = re.sub(rf"\b{re.escape(person)}\b", TARGET_TAG, message.text, flags=re.IGNORECASE)
+        text = re.sub(name_pattern(person), TARGET_TAG, message.text, flags=re.IGNORECASE)
         return tag + " " + text
 
     def prepare_point(self, window: list[Message], person: str) -> dict[str, np.ndarray]:
         """
-        Encodes a single window for the model
+        Encodes a single window for the model. The text uses the last HISTORY messages,
+        the features use up to the last CANDIDATE_POOL
         """
-        if len(window) != HISTORY:
-            raise ValueError(f"Expected {HISTORY} messages, got {len(window)}")
+        if len(window) < HISTORY:
+            raise ValueError(f"Expected at least {HISTORY} messages, got {len(window)}")
 
         return {
-            "text"    : np.stack([self.tokenize(self.clean_text(m, person)) for m in window]).astype("int32"),
-            "features": np.array(self.compute_features(window, person), dtype="float32")
+            "text"    : np.stack([self.tokenize(self.clean_text(m, person)) for m in window[-HISTORY:]]).astype("int32"),
+            "features": np.array(self.compute_features(window[-CANDIDATE_POOL:], person), dtype="float32")
         }
 
     def format_data(self, logs: list[MessagedLog]) -> tuple[dict[str, np.ndarray], np.ndarray]:
@@ -183,14 +191,14 @@ class MachineLearning:
             for message in log.messages:
                 window.append(message)
 
-                if len(window) > HISTORY:
+                if len(window) > CANDIDATE_POOL:
                     window.pop(0)
 
                 authors = set(m.username for m in window if m.username is not None)
                 authors.discard(message.username)
 
                 # we can only train on annotated messages
-                if len(window) == HISTORY and message.annotated and len(authors) > 0 and message.username != None:
+                if len(window) == CANDIDATE_POOL and message.annotated and len(authors) > 0 and message.username != None:
                     for person in authors:
                         point = self.prepare_point(window, person)
 
@@ -227,7 +235,7 @@ class MachineLearning:
 
         # Training
         model.compile(
-            optimizer="adam",
+            optimizer=keras.optimizers.Adam(learning_rate=LEARNING_RATE),
             loss="binary_crossentropy",
             metrics=[keras.metrics.F1Score(threshold=ROUTING_CUTOFF, average="micro"), keras.metrics.AUC()]
         )
@@ -244,7 +252,7 @@ class MachineLearning:
             batch_size      = BATCH_SIZE,
             callbacks       = [
                 TqdmCallback(verbose=2),
-                keras.callbacks.EarlyStopping(monitor="val_f1_score", mode="max", patience=5, restore_best_weights=True)
+                keras.callbacks.EarlyStopping(monitor="val_loss", mode="min", patience=5, restore_best_weights=True)
             ],
             class_weight = {0: 1.0, 1: (1 - pos) / pos}
         )
@@ -262,7 +270,7 @@ class MachineLearning:
         """
         Performs inference on the model
         """
-        point = self.prepare_point(messages[-HISTORY:], person)
+        point = self.prepare_point(messages[-CANDIDATE_POOL:], person)
         return float(self.model.predict({k: v[None] for k, v in point.items()}, verbose=0)[0, 0])
 
 
@@ -304,9 +312,16 @@ if __name__ == "__main__":
             person = input("Person: ")
             window = []
 
-            print("Now, input the last " + str(HISTORY) + " messages (older first)")
+            print(f"Now, input up to the last {CANDIDATE_POOL} messages (older first), and a blank line to finish")
 
-            while len(window) < HISTORY:
-                window.append(input("Message: "))
+            while len(window) < CANDIDATE_POOL:
+                if not (line := input("Message: ")):
+                    if len(window) >= HISTORY:
+                        break
+
+                    print(f"Need at least {HISTORY} messages")
+                    continue
+
+                window.append(line)
 
             print(model.inference(lines_to_messages(window), person))
