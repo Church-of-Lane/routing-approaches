@@ -56,7 +56,13 @@ N_TRAIN = 50  # half positive, half negative (see training_subset)
 N_VAL   = 200
 N_TEST  = 500
 SAMPLE_SEED = 0
-FEWSHOT_IDS: list[str] = []  # ids ("log:index:candidate") of every training point used in any prompt
+# ids ("log:index:candidate") of every training point used in any prompt. Picked at random
+# (seed 1) from the training points outside every fixed subset.
+FEWSHOT_IDS = [
+    "2005-06-16.train-c:1410:bob2",    # positive
+    "2018-02-27.train-c:1168:frazr",   # negative
+    "2005-12-03.train-c:1467:Locke",   # negative
+]
 
 # One entry per prompt version. {name} is replaced by the candidate, {transcript} by the window.
 # Write the change and the hypothesis BEFORE running a new version.
@@ -120,6 +126,19 @@ Conversation so far:
 {{transcript}}
 </transcript>
 
+Score the latest message from 0 to 1.""",
+
+"v3": f"""Decide whether {{name}} should reply to what was just said.
+
+<examples>
+{{examples}}
+</examples>
+
+Conversation so far:
+<transcript>
+{{transcript}}
+</transcript>
+
 Score the latest message from 0 to 1."""
 }
 
@@ -127,7 +146,9 @@ Score the latest message from 0 to 1."""
 def load_rows(split, n, exclude=(), balanced=False):
     """A fixed random subset of n points from a split, as dicts of id, name, transcript and label.
     The transcript is the last HISTORY lines of the window, like the symbolic approach sees.
-    If balanced, half the points are positive and half negative, in shuffled order."""
+    If balanced, half the points are positive and half negative, in shuffled order.
+    Sampling ignores exclude, so adding a few-shot example never changes the subset;
+    instead it is an error for an excluded point to be in it."""
     rows = [
         {
             "id": f"{point.log}:{point.index}:{point.candidate}",
@@ -138,10 +159,9 @@ def load_rows(split, n, exclude=(), balanced=False):
         for log in load_split(split)
         for point in iter_points(log, CANDIDATE_POOL)
     ]
-    rows = [row for row in rows if row["id"] not in exclude]
     rng = random.Random(SAMPLE_SEED)
     if not balanced:
-        return rng.sample(rows, min(n, len(rows)))
+        return check_excluded(rng.sample(rows, min(n, len(rows))), exclude)
 
     positive = [row for row in rows if row["label"]]
     negative = [row for row in rows if not row["label"]]
@@ -149,7 +169,34 @@ def load_rows(split, n, exclude=(), balanced=False):
         raise ValueError(f"{split} has {len(positive)} positive and {len(negative)} negative points, too few for {n} balanced")
     sample = rng.sample(positive, n // 2) + rng.sample(negative, n - n // 2)
     rng.shuffle(sample)
-    return sample
+    return check_excluded(sample, exclude)
+
+
+def check_excluded(rows, exclude):
+    overlap = [row["id"] for row in rows if row["id"] in exclude]
+    if overlap:
+        raise ValueError(f"Excluded points are in the fixed subset, so pick different ones: {overlap}")
+    return rows
+
+
+def format_examples():
+    """The FEWSHOT_IDS training points, written out for {examples}, with the gold label as the answer."""
+    rows = {row["id"]: row for row in load_rows(TRAIN_SPLIT, sys.maxsize)}
+    return "\n\n".join(
+        f"""<example>
+Should {rows[id]["name"]} reply?
+<transcript>
+{rows[id]["transcript"]}
+</transcript>
+{json.dumps({"answer": "1.0" if rows[id]["label"] else "0.0"})}
+</example>"""
+        for id in FEWSHOT_IDS
+    )
+
+
+def with_examples(prompt):
+    """Fills in {examples}, only loading the training split when the prompt uses them."""
+    return prompt.replace("{examples}", format_examples()) if "{examples}" in prompt else prompt
 
 
 def fill(prompt, row):
@@ -188,11 +235,14 @@ def run(version, rows, out_file):
     """Run one prompt on every row, and save every response to out_file.
     The first line of out_file records the setup. If out_file already has the
     outputs for exactly this setup and these rows, they are loaded instead."""
-    prompt = PROMPTS[version]
+    prompt = with_examples(PROMPTS[version])
     setup = {"model": MODEL, "options": OPTIONS, "schema": SCHEMA, "prompt": prompt}
     if Path(out_file).exists():
-        with open(out_file, encoding="utf-8") as f:
-            lines = [json.loads(line) for line in f if line.strip()]
+        try:
+            with open(out_file, encoding="utf-8") as f:
+                lines = [json.loads(line) for line in f if line.strip()]
+        except json.JSONDecodeError:  # e.g. two runs wrote the same file at once, so redo it
+            lines = []
         if lines and lines[0] == setup and [r["id"] for r in lines[1:]] == [row["id"] for row in rows]:
             print(f"\n{version}: nothing changed, so using the saved outputs in {out_file}")
             return lines[1:]
@@ -234,6 +284,15 @@ def test_subset():
     return load_rows(TEST_SPLIT, N_TEST)
 
 
+def print_table(table):
+    columns = list(next(iter(table.values())))
+    print(f"{'version':<10}" + "".join(f"{column:>11}" for column in columns))
+    for version, metrics in table.items():
+        print(f"{version:<10}" + "".join(
+            f"{value:>11.3f}" if isinstance(value, float) else f"{value:>11}" for value in metrics.values()
+        ))
+
+
 def compare(versions, rows, split):
     """Score each version on the same rows, and list fixes and breaks vs. the first version."""
     unknown = [v for v in versions if v not in PROMPTS]
@@ -242,17 +301,19 @@ def compare(versions, rows, split):
     RUNS_DIR.mkdir(parents=True, exist_ok=True)
     t = np.array([row["label"] for row in rows], dtype="float32")
     correct = {}  # version -> [True/False for each point]
+    table = {}    # version -> metrics
     for version in versions:
         results = run(version, rows, RUNS_DIR / f"{version}_{split}.jsonl")
         correct[version] = [routed(r["prediction"]) == row["label"] for r, row in zip(results, rows)]
         y = np.array([score(r["prediction"]) for r in results], dtype="float32")
-        metrics = compute_metrics(y, t, ROUTING_CUTOFF)
-        invalid = sum(r["prediction"] is None for r in results)
-        seconds = sum(r["seconds"] for r in results) / len(results)
-        print(f"{version}: accuracy {metrics['accuracy']:.3f}, precision {metrics['precision']:.3f}, "
-              f"recall {metrics['recall']:.3f}, F1 {metrics['f1']:.3f} at cutoff {ROUTING_CUTOFF}, "
-              f"AUC {metrics['auc']:.3f} on {metrics['points']} {split} points "
-              f"({metrics['positives']} positive), {invalid} invalid, {seconds:.1f} s per point")
+        table[version] = {
+            **compute_metrics(y, t, ROUTING_CUTOFF),
+            "invalid": sum(r["prediction"] is None for r in results),
+            "avg_secs": sum(r["seconds"] for r in results) / len(results),  # per response, from the saved runs
+        }
+
+    print(f"\n=== {split}, cutoff {ROUTING_CUTOFF} ===")
+    print_table(table)
 
     # Fixes and breaks: points that became right or wrong, compared with the first version.
     print()
