@@ -6,9 +6,9 @@ readme = "README.md"
 authors = [
     { name = "Jahan Rashidi", email = "hiimjahan@gmail.com" }
 ]
-requires-python = ">=3.11"
+requires-python = ">=3.10"
 dependencies = [
-    "matplotlib>=3.11.2",
+    "matplotlib>=3.10.9",
 ]
 
 [project.scripts]
