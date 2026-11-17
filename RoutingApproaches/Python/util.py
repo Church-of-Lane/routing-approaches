@@ -1,3 +1,4 @@
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -30,6 +31,8 @@ class Message:
     responders: list[str]
     text: str
     annotated: bool
+    # minutes since midnight from the [HH:MM] stamp, None for system lines
+    minute: int | None = None
 
 @dataclass
 class MessagedLog:
@@ -115,12 +118,17 @@ def lines_to_messages(lines: list[str], replies_to: dict[int, list[int]] | None 
         for replied_to in parents:
             index_to_responders.setdefault(replied_to, []).append(replier)
 
+    def minute(line: str) -> int | None:
+        match = re.match(r"^\[(\d{2}):(\d{2})\]", line)
+        return int(match.group(1)) * 60 + int(match.group(2)) if match else None
+
     return [
         Message(
             Symbolic.extract_username(line),
             index_to_responders.get(i, []),
             Symbolic.extract_message(line) or "",
             bool(replies_to) and i >= FIRST_ANNOTATED_LINE,
+            minute(line),
         )
         for i, line in enumerate(lines)
     ]
