@@ -7,6 +7,10 @@ from glob import glob
 from sys import argv
 
 from matplotlib import pyplot as plt
+from matplotlib.lines import Line2D
+
+from machine_learning import CANDIDATE_POOL, ROUTING_CUTOFF, VALIDATION_SPLIT
+from util import iter_points, load_split
 
 # defaults to the most recent history (files are named by timestamp)
 path = argv[1] if len(argv) > 1 else max(glob("[0-9]*.json"), key=lambda f: int(f.split(".")[0]))
@@ -14,14 +18,94 @@ path = argv[1] if len(argv) > 1 else max(glob("[0-9]*.json"), key=lambda f: int(
 with open(path, "r") as file:
     history = json.load(file)
 
+# A model guessing randomly outputs uniform scores, so at the cutoff it flags each point as positive with
+# probability 1 - ROUTING_CUTOFF regardless of its label. Precision is then just the positive rate, and AUC is 0.5
+labels   = [point.label for log in load_split(VALIDATION_SPLIT) for point in iter_points(log, CANDIDATE_POOL)]
+positive = sum(labels) / len(labels)
+recall   = 1 - ROUTING_CUTOFF
+
+random_baseline = {
+    "precision": positive,
+    "f1_score" : 2 * positive * recall / (positive + recall),
+    "auc"      : 0.5,
+}
+
+# Colour is per metric (train and validation share it), and line style tells them apart. These four hues are
+# checked to stay distinguishable with colour blindness, even where every line can cross every other
+COLORS = {
+    "auc"      : "#2a78d6", # blue
+    "f1_score" : "#eda100", # yellow
+    "precision": "#e87ba4", # magenta
+    "loss"     : "#008300", # green
+}
+OTHER_COLOR = "#7a7974"     # any metric not listed above
+
+STYLES = {
+    "val"   : dict(linestyle="-",  linewidth=2.0),
+    "train" : dict(linestyle=":",  linewidth=2.0),
+    "random": dict(linestyle="--", linewidth=1.2, alpha=0.8),
+}
+
+TEXT_COLOR = "#3d3d3a"
+
+fig, ax = plt.subplots(figsize=(10, 6))
+
+end_labels = [] # (y, text, color) for labelling each line at its right end
+
 for metric, values in history.items():
-    plt.plot(values, label=metric)
+    split = "val" if metric.startswith("val_") else "train"
+    base  = metric.removeprefix("val_")
+    color = COLORS.get(base, OTHER_COLOR)
 
-plt.title(f'training history ({path})')
+    ax.plot(values, color=color, **STYLES[split])
+    end_labels.append((values[-1], f"{split} {base.removesuffix('_score')}", color))
 
-plt.ylabel('value')
-plt.xlabel('epoch')
+    if split == "val" and (baseline := random_baseline.get(base)) is not None:
+        ax.axhline(baseline, color=color, **STYLES["random"])
+        end_labels.append((baseline, f"random {base.removesuffix('_score')} ({baseline:.3f})", color))
 
-plt.legend(loc='upper left')
+# Labels sit just right of the plot. Lines often end close together (train and val F1, say),
+# so labels are pushed apart until none overlap, with a short leader back to their line
+last = max(len(v) for v in history.values()) - 1
+ax.set_xlim(0, max(last, 1))
+
+low, high = ax.get_ylim()
+gap       = (high - low) * 0.04
+
+end_labels.sort()
+placed = []
+for y, _, _ in end_labels:
+    placed.append(max(y, placed[-1] + gap) if placed else y)
+
+# if pushing up ran past the top, shift everything back down to fit
+overflow = placed[-1] - high if placed else 0
+if overflow > 0:
+    placed = [p - overflow for p in placed]
+    for i in range(len(placed) - 2, -1, -1):
+        placed[i] = min(placed[i], placed[i + 1] - gap)
+
+to_label = ax.get_yaxis_transform() # x in axes fraction, y in data
+
+for (y, text, color), label_y in zip(end_labels, placed):
+    # elbow leader: flat off the line, angled to the label's row, flat again into the label
+    ax.plot([1.0, 1.01, 1.03, 1.04], [y, y, label_y, label_y], transform=to_label, color=color, linewidth=1.5, clip_on=False)
+    ax.text(1.045, label_y, text, transform=to_label, va="center", fontsize=9, color=TEXT_COLOR)
+
+# The direct labels name each line, so the legend only explains the line styles
+ax.legend(
+    handles=[Line2D([], [], color=TEXT_COLOR, label=name, **style) for name, style in STYLES.items()],
+    loc="upper center", bbox_to_anchor=(0.5, -0.1), ncol=3, frameon=False,
+)
+
+ax.grid(axis="y", color="#e5e4df", linewidth=0.8)
+ax.set_axisbelow(True)
+for side in ("top", "right"):
+    ax.spines[side].set_visible(False)
+
+ax.set_title(f"training history ({path})")
+ax.set_ylabel("value")
+ax.set_xlabel("epoch")
+
+fig.subplots_adjust(right=0.75, bottom=0.18)
 
 plt.show()
