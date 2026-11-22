@@ -1,0 +1,51 @@
+{"model": "gemma4:e4b", "options": {"temperature": 0, "seed": 0, "num_ctx": 8192}, "schema": {"type": "object", "properties": {"answer": {"type": "string", "enum": ["0.0", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]}}, "required": ["answer"]}, "prompt": "Decide whether {name} should reply to what was just said.\n\nConversation so far:\n<transcript>\n{transcript}\n</transcript>\n\nScore the latest message from 0 to 1."}
+{"id": "2008-04-20.train-a:1129:bazhang", "prediction": "0.0", "raw": "{\n  \"answer\": \"0.0\"\n}", "seconds": 3.05, "prompt_tokens": 556}
+{"id": "2009-07-02.train-c:1157:Jordan_U", "prediction": "1.0", "raw": "{\n  \"answer\": \"1.0\"\n}", "seconds": 2.19, "prompt_tokens": 686}
+{"id": "2007-08-22.train-c:1252:zeeble", "prediction": "0.0", "raw": "{\n  \"answer\": \"0.0\"\n}", "seconds": 2.12, "prompt_tokens": 748}
+{"id": "2010-06-21.train-c:1480:cgethycx", "prediction": "0.0", "raw": "{\n  \"answer\": \"0.0\"\n}", "seconds": 3.26, "prompt_tokens": 572}
+{"id": "2006-05-02.train-c:1336:FearMoth", "prediction": "1.0", "raw": "{\n  \"answer\": \"1.0\"\n}", "seconds": 3.89, "prompt_tokens": 578}
+{"id": "2007-06-01.train-c:1397:leagris", "prediction": "1.0", "raw": "{\n  \"answer\": \"1.0\"\n}", "seconds": 3.27, "prompt_tokens": 674}
+{"id": "2013-09-16.train-c:1230:[FreeBSD]", "prediction": "0.5", "raw": "{\n  \"answer\": \"0.5\"\n}", "seconds": 2.8, "prompt_tokens": 528}
+{"id": "2010-08-15.train-c:1232:winterweaver", "prediction": "0.1", "raw": "{\n  \"answer\": \"0.1\"\n}", "seconds": 3.33, "prompt_tokens": 664}
+{"id": "2011-04-14.train-c:1391:a3Deb", "prediction": "0.2", "raw": "{\n  \"answer\": \"0.2\"\n}", "seconds": 3.65, "prompt_tokens": 651}
+{"id": "2007-10-24.train-c:1286:pike_", "prediction": "0.8", "raw": "{\n  \"answer\": \"0.8\"\n}", "seconds": 3.16, "prompt_tokens": 649}
+{"id": "2010-03-08.train-c:1355:Dr_Willis", "prediction": "0.0", "raw": "{\n  \"answer\": \"0.0\"\n}", "seconds": 2.9, "prompt_tokens": 750}
+{"id": "2007-01-29.train-c:1270:xtknight", "prediction": "1.0", "raw": "{\n  \"answer\": \"1.0\"\n}", "seconds": 2.43, "prompt_tokens": 532}
+{"id": "2005-12-04.train-c:1270:DShepherd", "prediction": "1.0", "raw": "{\n  \"answer\": \"1.0\"\n}", "seconds": 3.39, "prompt_tokens": 525}
+{"id": "2011-03-18.train-c:1219:mman", "prediction": "0.0", "raw": "{\n  \"answer\": \"0.0\"\n}", "seconds": 3.84, "prompt_tokens": 671}
+{"id": "2008-02-07.train-c:1110:LjL", "prediction": "0.8", "raw": "{\n  \"answer\": \"0.8\"\n}", "seconds": 3.09, "prompt_tokens": 590}
+{"id": "2007-10-24.train-c:1180:pack", "prediction": "1.0", "raw": "{\n  \"answer\": \"1.0\"\n}", "seconds": 2.97, "prompt_tokens": 674}
+{"id": "2011-04-17.train-c:1229:bot_killer", "prediction": "0.9", "raw": "{\n  \"answer\": \"0.9\"\n}", "seconds": 2.57, "prompt_tokens": 565}
+{"id": "2010-01-04.train-c:1449:bitplane", "prediction": "1.0", "raw": "{\n  \"answer\": \"1.0\"\n}", "seconds": 2.08, "prompt_tokens": 544}
+{"id": "2006-02-28.train-c:1407:iBalo", "prediction": "0.1", "raw": "{\n\"answer\": \"0.1\"\n}", "seconds": 3.53, "prompt_tokens": 551}
+{"id": "2006-09-24.train-c:1077:dan2", "prediction": "0.1", "raw": "{\n  \"answer\": \"0.1\"\n}", "seconds": 3.62, "prompt_tokens": 548}
+{"id": "2017-02-06.train-c:1265:alderman", "prediction": "0.2", "raw": "{\n  \"answer\": \"0.2\"\n}", "seconds": 3.44, "prompt_tokens": 635}
+{"id": "2009-05-08.train-c:1271:KingKimi", "prediction": "0.0", "raw": "{\n  \"answer\": \"0.0\"\n}", "seconds": 3.22, "prompt_tokens": 537}
+{"id": "2006-12-10.train-a:1503:nolimitsoya", "prediction": "1.0", "raw": "{\n  \"answer\": \"1.0\"\n}", "seconds": 2.65, "prompt_tokens": 644}
+{"id": "2006-05-02.train-c:1297:jmg", "prediction": "0.0", "raw": "{\n  \"answer\": \"0.0\"\n}", "seconds": 2.79, "prompt_tokens": 518}
+{"id": "2005-12-23.train-c:1133:tiglionabbit", "prediction": "0.0", "raw": "{\n  \"answer\": \"0.0\"\n}", "seconds": 2.57, "prompt_tokens": 704}
+{"id": "2008-04-27.train-a:1835:bazhang", "prediction": "1.0", "raw": "{\n  \"answer\": \"1.0\"\n}", "seconds": 3.24, "prompt_tokens": 651}
+{"id": "2013-05-05.train-a:1094:SwedeMike", "prediction": "1.0", "raw": "{\n  \"answer\": \"1.0\"\n}", "seconds": 2.64, "prompt_tokens": 615}
+{"id": "2009-12-05.train-c:1479:ubottu", "prediction": "0.2", "raw": "{\n  \"answer\": \"0.2\"\n}", "seconds": 2.89, "prompt_tokens": 561}
+{"id": "2017-07-15.train-c:1240:help321", "prediction": "1.0", "raw": "{\n  \"answer\": \"1.0\"\n}", "seconds": 3.66, "prompt_tokens": 924}
+{"id": "2006-02-28.train-c:1188:Seveas", "prediction": "0.9", "raw": "{\n  \"answer\": \"0.9\"\n}", "seconds": 2.77, "prompt_tokens": 616}
+{"id": "2014-08-14.train-c:1493:ikonia", "prediction": "0.0", "raw": "{\n\"answer\": \"0.0\"\n}", "seconds": 2.97, "prompt_tokens": 584}
+{"id": "2006-06-05.train-a:1283:Klaidas", "prediction": "1.0", "raw": "{\n  \"answer\": \"1.0\"\n}", "seconds": 3.6, "prompt_tokens": 577}
+{"id": "2015-05-08.train-c:1266:katronix", "prediction": "0.0", "raw": "{\n  \"answer\": \"0.0\"\n}", "seconds": 2.36, "prompt_tokens": 737}
+{"id": "2008-01-02.train-c:1324:krazytekn0", "prediction": "0.2", "raw": "{\n  \"answer\": \"0.2\"\n}", "seconds": 2.97, "prompt_tokens": 555}
+{"id": "2010-10-27.train-c:1370:shingen", "prediction": "0.7", "raw": "{\n  \"answer\": \"0.7\"\n}", "seconds": 3.89, "prompt_tokens": 599}
+{"id": "2009-05-08.train-c:1060:glitsj16", "prediction": "0.1", "raw": "{\n  \"answer\": \"0.1\"\n}", "seconds": 3.56, "prompt_tokens": 895}
+{"id": "2005-06-12.train-c:1461:random_", "prediction": "0.0", "raw": "{\"answer\": \"0.0\"}", "seconds": 2.48, "prompt_tokens": 496}
+{"id": "2014-08-14.train-c:1343:frib", "prediction": "1.0", "raw": "{\n  \"answer\": \"1.0\"\n}", "seconds": 3.11, "prompt_tokens": 486}
+{"id": "2006-08-15.train-c:1373:tyler_d", "prediction": "1.0", "raw": "{\n  \"answer\": \"1.0\"\n}", "seconds": 2.29, "prompt_tokens": 531}
+{"id": "2005-12-16.train-c:1307:slashx1896", "prediction": "1.0", "raw": "{\n  \"answer\": \"1.0\"\n}", "seconds": 2.14, "prompt_tokens": 551}
+{"id": "2014-12-21.train-c:1151:nrdb", "prediction": "0.1", "raw": "{\n  \"answer\": \"0.1\"\n}", "seconds": 2.89, "prompt_tokens": 649}
+{"id": "2008-05-24.train-c:1371:ubottu", "prediction": "0.0", "raw": "{\n  \"answer\": \"0.0\"\n}", "seconds": 3.07, "prompt_tokens": 776}
+{"id": "2007-02-07.train-c:1340:AzMoo", "prediction": "1.0", "raw": "{\n  \"answer\": \"1.0\"\n}", "seconds": 3.27, "prompt_tokens": 785}
+{"id": "2007-08-24.train-c:1309:ellispop", "prediction": "0.1", "raw": "{\n  \"answer\": \"0.1\"\n}", "seconds": 3.07, "prompt_tokens": 649}
+{"id": "2011-12-07.train-c:1187:Crash_O-D", "prediction": "0.0", "raw": "{\n  \"answer\": \"0.0\"\n}", "seconds": 2.8, "prompt_tokens": 654}
+{"id": "2010-04-12.train-c:1080:Nitsuga", "prediction": "0.0", "raw": "{\n  \"answer\": \"0.0\"\n}", "seconds": 2.73, "prompt_tokens": 638}
+{"id": "2008-07-03.train-c:1034:guillaume", "prediction": "0.1", "raw": "{\n  \"answer\": \"0.1\"\n}", "seconds": 3.19, "prompt_tokens": 642}
+{"id": "2007-01-12.train-c:1049:livingdaylight", "prediction": "1.0", "raw": "{\n  \"answer\": \"1.0\"\n}", "seconds": 2.3, "prompt_tokens": 688}
+{"id": "2018-02-27.train-c:1249:nemo", "prediction": "1.0", "raw": "{\n  \"answer\": \"1.0\"\n}", "seconds": 2.11, "prompt_tokens": 739}
+{"id": "2009-05-04.train-c:1448:marky-b", "prediction": "0.4", "raw": "{\n  \"answer\": \"0.4\"\n}", "seconds": 3.33, "prompt_tokens": 708}
