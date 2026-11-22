@@ -13,7 +13,7 @@ Usage: python evaluate_machine_learning.py [weight_path] [token_path]
 """
 
 def evaluate(model: MachineLearning, x: dict[str, np.ndarray], t: np.ndarray, cutoff: float = ROUTING_CUTOFF) -> dict[str, float]:
-    return compute_metrics(model.predict(x), t.reshape(-1), cutoff)
+    return compute_metrics(model.model.predict(x, verbose=0).reshape(-1), t.reshape(-1), cutoff)
 
 def compute_metrics(y: np.ndarray, t: np.ndarray, cutoff: float = ROUTING_CUTOFF) -> dict[str, float]:
     """
