@@ -358,7 +358,7 @@ class MachineLearning:
             batch_size      = BATCH_SIZE,
             callbacks       = [
                 TqdmCallback(verbose=2),
-                keras.callbacks.EarlyStopping(monitor="val_precision", mode="min", patience=5, restore_best_weights=True)
+                keras.callbacks.EarlyStopping(monitor="val_loss", mode="min", patience=5, restore_best_weights=True)
             ],
             class_weight = {0: 1.0, 1: POSITIVE_WEIGHT}
         )

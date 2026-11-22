@@ -361,3 +361,131 @@ recall     0.6635
 f1         0.4428
 auc        0.8519
 ```
+
+# v4
+The text branch stays mostly the same as v3. The main change is to the features branch, which goes from 4 features to 37
+hand-made ones, and looks back over 100 messages instead of 20. Candidates still come from the last 20 messages.
+
+Other changes from v3:
+- Dropout(0.5) before and after the LSTM, since the text branch overfits quickly
+- Bigger dense layers (features 8 → 64 → 32, head 8/4 → 32/16)
+- Learning rate 3e-4 → 1e-3
+- Positive class weight fixed at 3.0 instead of (1 - pos) / pos (~9x). This moves the F1-optimal threshold to about 0.5
+- Early stopping monitored `val_precision` (mode `min`) instead of `val_loss` in commit 66416e0. This was a bug, since it
+  restores the epoch with the *worst* val precision, so it was switched back to `val_loss` (mode `min`) after blgh
+- Precision added as a training metric
+
+## Architecture
+```
+   text (B, 20, 32) int32                      features (B, 37) float32
+   20 msgs × 32 tokens, each msg prefixed      hand-made, over last 100 msgs
+   xxself/xxother, target nick → xxtarget                    │
+             │                                               │
+             ├──────────────┐                                │
+             ▼              │                                │
+┌──────────────────────────┐│                                │
+│ Embedding                ││                                │
+│ vocab_size+1 → 8         ││                                │
+│ (B, 20, 32, 8)           ││                                │
+└────────────┬─────────────┘│ padding mask                   │
+             ▼              │ (token ≠ 0)                    │
+┌──────────────────────────┐│                                │
+│ MessagePooling           │◄┘                               │
+│ masked mean over tokens  │                                 │
+│ (B, 20, 8)               │                                 │
+└────────────┬─────────────┘                                 │
+             ▼                                               ▼
+┌──────────────────────────┐              ┌──────────────────────────┐
+│ Dropout(0.5)             │              │ Dense(64, relu)          │
+└────────────┬─────────────┘              │ (B, 64)                  │
+             ▼                            └────────────┬─────────────┘
+┌──────────────────────────┐                           ▼
+│ LSTM(8)                  │              ┌──────────────────────────┐
+│ over messages            │              │ Dense(32, relu)          │
+│ (B, 8)                   │              │ (B, 32)                  │
+└────────────┬─────────────┘              └────────────┬─────────────┘
+             ▼                                         │
+┌──────────────────────────┐                           │
+│ Dropout(0.5)             │                           │
+└────────────┬─────────────┘                           │
+             │                                         │
+             └────────────────────┬────────────────────┘
+                                  ▼
+                ┌──────────────────────────┐
+                │ Concatenate              │
+                │ (B, 40)                  │
+                └────────────┬─────────────┘
+                             ▼
+                ┌──────────────────────────┐
+                │ Dense(32, relu)          │
+                └────────────┬─────────────┘
+                             ▼
+                ┌──────────────────────────┐
+                │ Dense(16, relu)          │
+                └────────────┬─────────────┘
+                             ▼
+                ┌──────────────────────────┐
+                │ Dense(1, sigmoid)        │
+                │ P(person responds)       │
+                └────────────┬─────────────┘
+                             ▼
+                   ≥ ROUTING_CUTOFF (0.5) ?
+```
+
+About 478k parameters, and all but about 7k of them are in the embedding (58,869 × 8).
+
+### Features (37)
+- **Mentions**: whether the person is named in the message (strict whole-word match, plus a loose match that allows
+  abbreviated or decorated nicks in the first 3 words); how many other candidates are mentioned; whether the message starts
+  with `nick:` or `nick,`
+- **Recency** (log-scaled distance in messages): when the person last spoke, when the speaker last spoke, when the person last
+  addressed the speaker, and when the speaker last addressed the person. Also binary versions of these: the person spoke
+  immediately before, the person spoke in the last 3 messages, and either of them addressed the other within the last 3
+- **Conversation state**: whether the person was the last one to address the speaker or the last one the speaker addressed
+  (each with a "nobody" flag); how many messages the speaker has sent since the person last spoke; how much back-and-forth
+  the two have had; whether the person has been busy talking to other people
+- **Activity**: how often the person and the speaker have talked recently; the person's share of the whole history; how often
+  the person starts messages with a nick; how many distinct speakers there are; how big the candidate pool is
+- **Message content**: contains `?`; length; starts with `!` (a bot command); contains a link; is a thank-you; is laughing;
+  is a greeting
+- **Topic**: how many words overlap with the person's last 3 messages (as a Jaccard ratio and as a count); whether the person's
+  last message was a question; whether the person's last message mentioned the speaker
+
+## Models
+
+### blgh
+Trained with the defaults in commit 66416e0. Early stopping ended training at epoch 15 and restored epoch 10, which had the
+lowest val precision because of the `min` mode. The best val_loss was at epoch 4 (0.166), and the best val_auc was at
+epoch 2 (0.910).
+
+Even so, this is a big jump over v3, and the number of points is the same, so they can be compared directly. F1 goes from
+0.46 to 0.58.
+
+#### Performance
+```
+=== Evaluating at cutoff 0.5 ===
+points     15908
+positives  1159
+accuracy   0.9343
+precision  0.5421
+recall     0.6333
+f1         0.5842
+auc        0.8897
+```
+
+### reblgh
+Same as blgh, but with early stopping fixed to watch `val_loss`. It stopped at epoch 8 and restored epoch 3. F1 is about
+the same as blgh, but precision and AUC are better (0.89 → 0.91), and recall is a bit lower. The val loss is lowest after
+only 2 to 4 epochs and goes up from there, so the model still starts overfitting early.
+
+#### Performance
+```
+=== Evaluating at cutoff 0.5 ===
+points     15908
+positives  1159
+accuracy   0.9378
+precision  0.5693
+recall     0.5988
+f1         0.5837
+auc        0.9075
+```

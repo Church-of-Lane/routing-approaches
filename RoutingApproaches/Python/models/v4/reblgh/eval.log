@@ -1,0 +1,10 @@
+=== Formatting dev data ===
+=== Evaluating at cutoff 0.5 ===
+points     15908
+positives  1159
+accuracy   0.9378
+precision  0.5693
+recall     0.5988
+f1         0.5837
+auc        0.9075
+In total, took 5.159072160720825
