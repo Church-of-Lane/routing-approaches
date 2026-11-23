@@ -3,18 +3,21 @@ import numpy as np
 from evaluate_machine_learning import compute_metrics
 from machine_learning import CANDIDATE_POOL, HISTORY, ROUTING_CUTOFF, VALIDATION_SPLIT
 from symbolic import Symbolic
-from util import Point, iter_points, load_split
+from util import FOLDER, Point, iter_points, load_split, test_points, write_eval_csv
 
 from time import time
 
 """
-Evaluates the symbolic approach against the validation (dev) split.
+Evaluates the symbolic approach against the validation (dev) split, or scores the full test set.
 
 Points are built exactly like in machine_learning.py / evaluate_machine_learning.py
 (same candidate pool, same candidates, same labels), so the metrics are directly comparable.
 
-Usage: python evaluate_symbolic.py
+Usage: python evaluate_symbolic.py           metrics on the dev split
+       python evaluate_symbolic.py --eval    score every point in the full test set, and write symbolic_eval.csv
 """
+
+SYMBOLIC_EVAL_CSV = FOLDER / "symbolic_eval.csv"
 
 def score_data(evaluator_cache: dict[str, Symbolic]) -> tuple[np.ndarray, np.ndarray]:
     y_valid = []
@@ -38,6 +41,14 @@ def score_point(point: Point, evaluator_cache: dict[str, Symbolic]) -> float:
 
 
 if __name__ == "__main__":
+    from sys import argv
+
+    if argv[1:] == ["--eval"]:
+        cache  = {}
+        points = test_points(CANDIDATE_POOL)
+        write_eval_csv(SYMBOLIC_EVAL_CSV, points, [score_point(point, cache) for point in points], ROUTING_CUTOFF)
+        raise SystemExit
+
     start_time = time()
 
     print(f"=== Scoring {VALIDATION_SPLIT} data ===")

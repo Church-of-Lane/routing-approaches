@@ -1,0 +1,51 @@
+index,line,confidence
+1000,"[02:00] <jonbusby> well no, their java applet windows. I'm running firefox with sun-j2rel.5 java vm",0
+1001,[02:00] <xliu> how to disable the updator when gnome startup?,0
+1002,"[02:00] <holycow> okay, what site?",0
+1003,[02:00] <rob^> heh,0
+1004,=== stig_ [~stig@dsl-121-26.oeke.tiscali.no]  has joined #ubuntu,0
+1005,[02:02] <stig_> how can I get access to my NTFS files from ubuntu? (fresh newbie asking) :),
+1006,"[02:02] <holycow> stig_, unfortunately for now it requires a bit of work",1
+1007,[02:02] <holycow> a: you will only be able to read the ntfs files,0.8
+1008,[02:03] <holycow> b) you wont be able to write to an ntfs partition,0.8
+1009,[02:03] <stig_> I only need to read from it :),
+1010,"[02:03] <holycow> ms keeps ntfs info secret, and any interim support for write has essentially dissapeared as no one cares enough to maintain the components",1
+1011,[02:03] <holycow> okay,0
+1012,[02:03] <holycow> then,0
+1013,[02:03] <jonbusby> hmmm hang on,0
+1014,[02:03] <jonbusby> may have solved this,0
+1015,[02:03] <jonbusby> brb,0
+1016,[02:03] <holycow> 1. you need to find your ntfs partition with sudo fdisk -l,0.5
+1017,"=== fge [~insomniac@fge.user]  has left #ubuntu [""May]",0
+1018,[02:04] <holycow> 2. you need to create a folder in say /media to wher eyou will mount to the ntfs partition ... mine is /media/ntfs,0.5
+1019,[02:04] <holycow> 3. you need to add info about the partition to your /etc/fstab,1
+1020,[02:04] <jonbusby> stig_ the ubuntuguide.org is really good on this,1
+1021,[02:04] <holycow> i'll paste a sample that i use,0.5
+1022,[02:05] <holycow> oh i don't have the line on this system,0
+1023,[02:05] <stig_> holycow: I think I made it it point 3... but dont know how I do that,
+1024,[02:05] <holycow> google for fstab mount ntfs ... you will get lots of examples of the entry,0.5
+1025,[02:05] <holycow> the 4. sudo mount /media/ntfs,0.5
+1026,"[02:05] <stig_> ok, thanks",
+1027,=== [noobuntu]  [~chris@dsl-082-082-220-126.arcor-ip.net]  has joined #ubuntu,0
+1028,[02:05] <holycow> then 5. you can browse to /metdia/ntfs and read the files from there,0.5
+1029,"[02:06] <holycow> i presume in the future some outomount feature will be available, not sure",0.5
+1030,=== Shorty` [~shorty@persephone.trancelab.org]  has joined #ubuntu,0
+1031,"[02:06] <holycow> stig_, google step 3 then :) you will need to reaserch a bit, i don't intend on teaching you how to use nano or whatever :)",1
+1032,=== amnesia [~remember@VPN-034-012.rz.fh-ulm.de]  has joined #ubuntu,0
+1033,[02:07] <[noobuntu]> anyone familiar w/ a prob getting the sound running on a K7S41Gx mainboard?,0
+1034,"[02:07] <holycow> no, i have tons of those, run ubuntu just fine",0
+1035,[02:08] <holycow> how new is it?,0
+1036,[02:08] <holycow> maybe they have changed the chipset again,0
+1037,=== theplateau [~james@cpe-024-211-050-039.sc.res.rr.com]  has joined #ubuntu,0
+1038,=== Shufla [~shufla@router.kkzabrze.com.pl]  has joined #ubuntu,0
+1039,[02:08] <Shufla> hello ubuntiers :),0
+1040,=== Dreco [~administr@c1-115-rrba.isadsl.co.za]  has joined #ubuntu,0
+1041,[02:09] <[noobuntu]> chips are SIS SI7012 with CMI 9761 mixer,0
+1042,"=== migma [~migma@210.213.244.114]  has left #Ubuntu [""Leaving""]",0
+1043,[02:09] <Dreco> Question: How do I search for a specific file name ?,0
+1044,=== jobli_ [~jobli@b1118c0888f965c1.session.tor]  has joined #ubuntu,0
+1045,[02:09] <Shufla> Dreco: find <dir> -name <fname>,0
+1046,"[02:09] <[noobuntu]> Dreco, try locate <filename>",0
+1047,[02:09] <Shufla> 49min2go :D,0
+1048,[02:10] <Dreco> thank you,0
+1049,"[02:10] <Tomcat_> Dreco: There's also a ""Search for file"" in the ""Places"" menu.",0

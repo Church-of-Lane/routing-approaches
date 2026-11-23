@@ -5,12 +5,12 @@ from time import time
 
 import keras
 import numpy as np
-from keras.src.legacy.preprocessing.text import Tokenizer
 
 import machine_learning as ml
 from evaluate_machine_learning import compute_metrics
-from machine_learning import FEATURE_COUNT, OTHER_TAG, SELF_TAG, SEED, TARGET_TAG, USE_TEXT, VALIDATION_SPLIT, MachineLearning
-from util import load_messaged_split, load_training_data
+from machine_learning import FEATURE_COUNT, SEED, USE_TEXT, VALIDATION_SPLIT, MachineLearning
+from ml_train import fit
+from util import load_messaged_split
 
 """
 Trains the model once for each feature count in a range, using the first N features
@@ -50,15 +50,9 @@ def take(x: dict[str, np.ndarray], n: int) -> dict[str, np.ndarray]:
 
 def setup_model() -> MachineLearning:
     """
-    Same setup as MachineLearning.__init__(train=True), without training
+    Loads the training data and fits the tokenizer. use_text is read from ml.USE_TEXT now, so set that first
     """
-    model = MachineLearning.__new__(MachineLearning)
-    model.tokenizer     = Tokenizer(oov_token="<OOV>")
-    model.training_data = load_training_data()
-    model.tokenizer.fit_on_texts([m.text for log in model.training_data for m in log.messages])
-    model.tokenizer.fit_on_texts([SELF_TAG, OTHER_TAG, TARGET_TAG])
-    model.vocab_size = len(model.tokenizer.word_index)
-    return model
+    return MachineLearning(True)
 
 
 def run(model: MachineLearning, data, n: int = FEATURE_COUNT, **layers) -> tuple[dict, keras.Model, keras.callbacks.History]:
@@ -71,7 +65,7 @@ def run(model: MachineLearning, data, n: int = FEATURE_COUNT, **layers) -> tuple
     ml.random.seed(SEED)
     keras.utils.set_random_seed(SEED)
 
-    trained, history = model.fit_model(take(x_train, n), t_train, take(x_valid, n), t_valid, feature_count=n, **layers)
+    trained, history = fit(model, take(x_train, n), t_train, take(x_valid, n), t_valid, feature_count=n, **layers)
 
     y        = trained.predict(take(x_valid, n), verbose=0, batch_size=2048).reshape(-1)
     val_loss = history.history["val_loss"]

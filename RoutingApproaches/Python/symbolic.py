@@ -112,20 +112,13 @@ class Symbolic:
 
 
 if __name__ == "__main__":
-    data = """[09:14] <crimsun> kleedrac: I'm afraid not. Any version of mplayer except for -k7* should work for your cpu
-[09:14] <intinig> does a subversion gnome client exist?
-[09:14] <kleedrac> crimsun: Hmmm ... I wonder why it does that?
-[09:15] <will> best media player: VLC /get wxvlc) It plays everything!
-[09:15] <|QuaD-> will: totem has caused me no troubles
-[09:15] <|QuaD-> totem xine
-[09:15] <crimsun> kleedrac: good question.
-[09:15] <Tsjoklate> |QuaD same here.. totem-xine werkt geweldig
-[09:15] <crimsun> intinig: I don't see one in warty or hoary
-[09:15] <kleedrac> xine is working great for video and xmms works great for mp3's but some of my music is in .wma as my wife ripped it"""
+    # imported here, since util imports this file
+    from util import TEST_SAMPLE, TEST_SAMPLE_CANDIDATE, load_test_sample
 
-    messages = data.split("\n")
+    # the test set sample, one chat line per line
+    messages = load_test_sample(TEST_SAMPLE)
 
-    symbolic = Symbolic("crimsun")
+    symbolic = Symbolic(TEST_SAMPLE_CANDIDATE)
 
     # Claude Opus 5.5 found bug where wrong variable was passed into score_text
     print(symbolic.score_text(messages))

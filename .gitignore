@@ -67,3 +67,6 @@ __pycache__
 *.json
 *.h5
 *.npz
+
+# the submitted ML weights (ml_inference.py loads them); checkpoints and history stay ignored
+!RoutingApproaches/Python/weights/ml.weights.h5

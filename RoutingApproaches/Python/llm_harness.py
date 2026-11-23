@@ -7,12 +7,18 @@ Task: given the last messages of an IRC log, score from 0 to 1 whether a candida
 Points come from util.iter_points, so the candidates and labels are the same ones the
 symbolic and machine learning approaches are scored on.
 
-    python llm_harness.py            develop: score every prompt in PROMPTS on a fixed training subset
-    python llm_harness.py val v0 v1  compare your best few prompts on a fixed validation (dev) subset
-    python llm_harness.py test v1    run the prompt "v1" once on a fixed test subset, and write llm/llm.csv
+Every prompt tried is in PROMPTS, and every LLM called is in MODELS (both run locally with Ollama).
+Every response is saved in llm/runs/<model prefix><version>_<split>.jsonl, and reruns with an unchanged
+setup load those instead of calling the LLM again. The metrics in the prompt log are compute_metrics in
+evaluate_machine_learning.py, at ROUTING_CUTOFF, plus the count of invalid outputs and the average seconds per response.
+
+    python llm_harness.py [--model NAME]             develop: score every prompt in PROMPTS on a fixed training subset
+    python llm_harness.py [--model NAME] val v0 v1   compare your best few prompts on a fixed validation (dev) subset
+
+NAME is a key of MODELS; without --model, every model is run. The best prompt and model are run on the
+full test set by llm_inference.py, which writes llm_eval.csv.
 """
 
-import csv
 import json
 import random
 import sys
@@ -24,9 +30,13 @@ import ollama
 
 from evaluate_machine_learning import compute_metrics
 from machine_learning import CANDIDATE_POOL, HISTORY, ROUTING_CUTOFF, VALIDATION_SPLIT
-from util import iter_points, load_split
+from util import Point, iter_points, load_split
 
-MODEL = "llama3.2:3b"
+# Every LLM tried. prefix starts its run files' names (the llama runs came first, so they have none)
+MODELS = {
+    "llama": {"model": "llama3.2:3b", "prefix": ""},
+    "gemma": {"model": "gemma4:e4b",  "prefix": "gemma_"},
+}
 OPTIONS = {
     "temperature": 0,  # always choose the most likely next token, so runs are repeatable
     "seed": 0,
@@ -43,18 +53,16 @@ SCHEMA = {
 
 # relative to script so it works no matter the directory.
 RUNS_DIR = Path(__file__).resolve().parent / "llm/runs"
-LLM_CSV  = Path(__file__).resolve().parent / "llm/llm.csv"
 
 TRAIN_SPLIT = "train"
-TEST_SPLIT  = "test"
 
-# Every split has far too many points to run the LLM on all of them (train ~440k, dev ~16k,
-# test ~30k, ~7% positive), so each one is a fixed random subset. Develop prompts on the
-# training subset. The LLM was never trained on these logs, so scoring them is fine,
-# as long as the few-shot examples (which are in a prompt, with their labels) are left out.
+# Train (~440k points) and dev (~16k) have far too many points to develop prompts on all of them
+# (~7% positive), so each one is a fixed random subset. Develop prompts on the training subset.
+# The LLM was never trained on these logs, so scoring them is fine, as long as the few-shot
+# examples (which are in a prompt, with their labels) are left out. The test set is scored in
+# full, once, by llm_inference.py.
 N_TRAIN = 50  # half positive, half negative (see training_subset)
 N_VAL   = 200
-N_TEST  = 500
 SAMPLE_SEED = 0
 # ids ("log:index:candidate") of every training point used in any prompt. Picked at random
 # (seed 1) from the training points outside every fixed subset.
@@ -149,16 +157,7 @@ def load_rows(split, n, exclude=(), balanced=False):
     If balanced, half the points are positive and half negative, in shuffled order.
     Sampling ignores exclude, so adding a few-shot example never changes the subset;
     instead it is an error for an excluded point to be in it."""
-    rows = [
-        {
-            "id": f"{point.log}:{point.index}:{point.candidate}",
-            "name": point.candidate,
-            "transcript": "\n".join(point.window[-HISTORY:]),
-            "label": point.label,
-        }
-        for log in load_split(split)
-        for point in iter_points(log, CANDIDATE_POOL)
-    ]
+    rows = [point_row(point) for log in load_split(split) for point in iter_points(log, CANDIDATE_POOL)]
     rng = random.Random(SAMPLE_SEED)
     if not balanced:
         return check_excluded(rng.sample(rows, min(n, len(rows))), exclude)
@@ -170,6 +169,16 @@ def load_rows(split, n, exclude=(), balanced=False):
     sample = rng.sample(positive, n // 2) + rng.sample(negative, n - n // 2)
     rng.shuffle(sample)
     return check_excluded(sample, exclude)
+
+
+def point_row(point: Point):
+    """A point as the LLM sees it: the candidate's name, and the last HISTORY lines of the window."""
+    return {
+        "id": f"{point.log}:{point.index}:{point.candidate}",
+        "name": point.candidate,
+        "transcript": "\n".join(point.window[-HISTORY:]),
+        "label": point.label,
+    }
 
 
 def check_excluded(rows, exclude):
@@ -213,12 +222,12 @@ def routed(prediction):
     return prediction is not None and float(prediction) >= ROUTING_CUTOFF
 
 
-def predict(prompt, row):
-    """Ask the model about one point. Returns (prediction, response, seconds).
+def predict(prompt, row, model):
+    """Ask the model (an Ollama model name) about one point. Returns (prediction, response, seconds).
     The prediction is None if the output is not one of the labels."""
     start = time.perf_counter()
     response = ollama.chat(
-        model=MODEL,
+        model=model,
         messages=[{"role": "user", "content": fill(prompt, row)}],
         format=SCHEMA,
         options=OPTIONS,
@@ -231,12 +240,12 @@ def predict(prompt, row):
     return (answer if answer in LABELS else None), response, seconds
 
 
-def run(version, rows, out_file):
-    """Run one prompt on every row, and save every response to out_file.
+def run(version, rows, out_file, model):
+    """Run one prompt on every row with model (an Ollama model name), and save every response to out_file.
     The first line of out_file records the setup. If out_file already has the
     outputs for exactly this setup and these rows, they are loaded instead."""
     prompt = with_examples(PROMPTS[version])
-    setup = {"model": MODEL, "options": OPTIONS, "schema": SCHEMA, "prompt": prompt}
+    setup = {"model": model, "options": OPTIONS, "schema": SCHEMA, "prompt": prompt}
     if Path(out_file).exists():
         try:
             with open(out_file, encoding="utf-8") as f:
@@ -244,17 +253,17 @@ def run(version, rows, out_file):
         except json.JSONDecodeError:  # e.g. two runs wrote the same file at once, so redo it
             lines = []
         if lines and lines[0] == setup and [r["id"] for r in lines[1:]] == [row["id"] for row in rows]:
-            print(f"\n{version}: nothing changed, so using the saved outputs in {out_file}")
+            print(f"\n{model} {version}: nothing changed, so using the saved outputs in {out_file}")
             return lines[1:]
 
-    print(f"\n===== {version}: the exact prompt for {rows[0]['id']} =====")
+    print(f"\n===== {model} {version}: the exact prompt for {rows[0]['id']} =====")
     print(fill(prompt, rows[0]))
     print("=====")
     results = []
     with open(out_file, "w", encoding="utf-8") as f:
         f.write(json.dumps(setup) + "\n")
         for row in rows:
-            prediction, response, seconds = predict(prompt, row)
+            prediction, response, seconds = predict(prompt, row, model)
             result = {
                 "id": row["id"],
                 "prediction": prediction,
@@ -280,10 +289,6 @@ def validation_subset():
     return load_rows(VALIDATION_SPLIT, N_VAL)
 
 
-def test_subset():
-    return load_rows(TEST_SPLIT, N_TEST)
-
-
 def print_table(table):
     columns = list(next(iter(table.values())))
     print(f"{'version':<10}" + "".join(f"{column:>11}" for column in columns))
@@ -293,8 +298,8 @@ def print_table(table):
         ))
 
 
-def compare(versions, rows, split):
-    """Score each version on the same rows, and list fixes and breaks vs. the first version."""
+def compare(versions, rows, split, name):
+    """Score each version with MODELS[name] on the same rows, and list fixes and breaks vs. the first version."""
     unknown = [v for v in versions if v not in PROMPTS]
     if unknown:
         sys.exit(f"No such prompt(s) in PROMPTS: {unknown}")
@@ -303,7 +308,8 @@ def compare(versions, rows, split):
     correct = {}  # version -> [True/False for each point]
     table = {}    # version -> metrics
     for version in versions:
-        results = run(version, rows, RUNS_DIR / f"{version}_{split}.jsonl")
+        model = MODELS[name]
+        results = run(version, rows, RUNS_DIR / f"{model['prefix']}{version}_{split}.jsonl", model["model"])
         correct[version] = [routed(r["prediction"]) == row["label"] for r, row in zip(results, rows)]
         y = np.array([score(r["prediction"]) for r in results], dtype="float32")
         table[version] = {
@@ -312,7 +318,7 @@ def compare(versions, rows, split):
             "avg_secs": sum(r["seconds"] for r in results) / len(results),  # per response, from the saved runs
         }
 
-    print(f"\n=== {split}, cutoff {ROUTING_CUTOFF} ===")
+    print(f"\n=== {MODELS[name]['model']}, {split}, cutoff {ROUTING_CUTOFF} ===")
     print_table(table)
 
     # Fixes and breaks: points that became right or wrong, compared with the first version.
@@ -325,27 +331,21 @@ def compare(versions, rows, split):
         print(f"{version} vs. {base}: fixes {fixes or 'none'}, breaks {breaks or 'none'}")
 
 
-def test(version):
-    """Run ONCE, with the version chosen on the validation set. The test labels are never read."""
-    if version not in PROMPTS:
-        sys.exit(f"No such prompt in PROMPTS: {version}")
-    rows = test_subset()
-    RUNS_DIR.mkdir(parents=True, exist_ok=True)
-    results = run(version, rows, RUNS_DIR / f"{version}_test.jsonl")
-    with open(LLM_CSV, "w", newline="", encoding="utf-8") as f:
-        writer = csv.writer(f)
-        writer.writerow(["Example ID", "LLM Prediction"])
-        for r in results:
-            writer.writerow([r["id"], r["prediction"] or "INVALID"])
-    print(f"\nWrote {len(results)} predictions to {LLM_CSV}.")
-
-
 if __name__ == "__main__":
-    if len(sys.argv) == 1:
-        compare(list(PROMPTS), training_subset(), "train")
-    elif len(sys.argv) >= 3 and sys.argv[1] == "val":
-        compare(sys.argv[2:], validation_subset(), "val")
-    elif len(sys.argv) == 3 and sys.argv[1] == "test":
-        test(sys.argv[2])
+    args = sys.argv[1:]
+    names = list(MODELS)
+    if args[:1] == ["--model"]:
+        if len(args) < 2 or args[1] not in MODELS:
+            sys.exit(f"--model must be one of {list(MODELS)}")
+        names, args = [args[1]], args[2:]
+
+    if not args:
+        rows = training_subset()
+        for name in names:
+            compare(list(PROMPTS), rows, "train", name)
+    elif len(args) >= 2 and args[0] == "val":
+        rows = validation_subset()
+        for name in names:
+            compare(args[1:], rows, "val", name)
     else:
         sys.exit(__doc__)

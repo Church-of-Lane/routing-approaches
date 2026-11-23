@@ -1,3 +1,4 @@
+import csv
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -16,7 +17,20 @@ isn't a reply to anything (it starts a new conversation, or is a system line).
 """
 
 # relative to script so it works no matter the directory.
-DATA_DIR = Path(__file__).resolve().parent / "../../data/irc-data"
+FOLDER   = Path(__file__).resolve().parent
+DATA_DIR = FOLDER / "../../data/irc-data"
+
+TEST_SPLIT = "test"
+
+# The test set sample: the chat that symbolic.py, ml_inference.py and llm_inference.py each score
+# when run directly, and the person it's scored for
+TEST_SAMPLE           = FOLDER / "test_sample.txt"
+TEST_SAMPLE_CANDIDATE = "crimsun"
+
+# Columns of symbolic_eval.csv, ml_eval.csv and llm_eval.csv (the same as the progress report's symbolic_eval.csv).
+# One row per test point: score is the approach's confidence, predicted is score >= the routing cutoff,
+# actual is whether the candidate replied, and outcome is TP/FP/TN/FN
+EVAL_COLUMNS = ["log", "line", "speaker", "candidate", "score", "predicted", "actual", "outcome", "message"]
 
 LOG_SUFFIX = ".ascii.txt"
 ANNOTATION_SUFFIX = ".annotation.txt"
@@ -155,3 +169,44 @@ def iter_points(log: AnnotatedLog, pool: int):
 
         for person in sorted(authors):
             yield Point(log.name, index, person, log.lines[start:index + 1], person in message.responders)
+
+
+def load_test_sample(path: Path = TEST_SAMPLE) -> list[str]:
+    return load_lines(path)
+
+
+def test_points(pool: int) -> list[Point]:
+    """
+    Every point in the full test set: lines 1000-1499 of the 10 test logs (the lines in ground_truth.csv),
+    with one point per candidate. Every approach is scored on exactly these points
+    """
+    return [point for log in load_split(TEST_SPLIT) for point in iter_points(log, pool)]
+
+
+def write_eval_csv(path: Path, points: list[Point], scores, cutoff: float) -> None:
+    """
+    Writes one approach's scores for the test points, in EVAL_COLUMNS format
+    """
+    with open(path, "w", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file)
+        writer.writerow(EVAL_COLUMNS)
+
+        for point, score in zip(points, scores, strict=True):
+            # predicted is from the rounded score, so it always agrees with the score column
+            message   = point.window[-1]
+            score     = round(float(score), 4)
+            predicted = score >= cutoff
+
+            writer.writerow([
+                point.log,
+                point.index,
+                Symbolic.extract_username(message),
+                point.candidate,
+                score,
+                int(predicted),
+                int(point.label),
+                ("T" if predicted == point.label else "F") + ("P" if predicted else "N"),
+                message,
+            ])
+
+    print(f"Wrote {len(points)} predictions to {path}")

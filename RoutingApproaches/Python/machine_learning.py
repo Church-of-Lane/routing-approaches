@@ -1,21 +1,24 @@
-import json
 import random
 
 import keras
 import numpy as np
 from keras.src.legacy.preprocessing.text import Tokenizer, tokenizer_from_json
 from keras.utils import pad_sequences
-from util import load_training_data, load_messaged_split, Message, MessagedLog, lines_to_messages
+from util import load_training_data, Message, MessagedLog
 
 import re
 from functools import lru_cache
 from time import time
 
-from tqdm.keras import TqdmCallback
+"""
+The routing model: the hand-made features, the architecture, and turning chat logs into model inputs.
+
+Training (optimizer, epochs, checkpoints, training curve) is in ml_train.py, and loading the submitted
+weights to score a chat is in ml_inference.py. Defaults here are what the sweeps in models.md use;
+ml_train.py sets the final model's architecture explicitly.
+"""
 
 SEED               = 1432516 # Zohar's favorite number
-EPOCHS             = 100
-VERBOSE            = 0
 HISTORY            = 20  # messages the text model reads
 CANDIDATE_POOL     = 20  # messages candidates are drawn from
 FEATURE_HISTORY    = 100 # messages the hand-made features look back over
@@ -25,11 +28,8 @@ HEAD_LAYERS        = (32, 16) # dense layers after joining
 TOKENS_PER_MESSAGE = 32
 TEXT_VECTOR_SIZE   = 8
 ROUTING_CUTOFF     = 0.5
-POSITIVE_WEIGHT    = 3.0 # moves the F1-optimal threshold of the unweighted model (~0.25) to ROUTING_CUTOFF
-BATCH_SIZE         = 512
-LEARNING_RATE      = 1e-4
 VALIDATION_SPLIT   = "dev"
-USE_TEXT           = True  # False drops the text branch, leaving a features-only model
+USE_TEXT           = True  # default for new MachineLearning objects. False drops the text branch, leaving a features-only model
 
 SELF_TAG   = "xxself"
 OTHER_TAG  = "xxother"
@@ -37,14 +37,6 @@ TARGET_TAG = "xxtarget"
 
 random     .seed           (SEED)
 keras.utils.set_random_seed(SEED)
-
-# Used for seeing how long different things take
-time_elapsed = 0
-
-"""
-Things to do:
-    - Evaluate final model with test set
-"""
 
 def name_pattern(person: str) -> str:
     """
@@ -95,50 +87,48 @@ class MessagePooling(keras.layers.Layer):
 
 class MachineLearning:
     """
-
+    train=True loads the training data and fits the tokenizer, ready for ml_train.py to build and fit a model.
+    train=False builds the model and loads trained weights (and the token map, if it reads text).
+    use_text defaults to the module's USE_TEXT, read when the object is made
     """
     model      : keras.Model
     vocab_size : int
     tokenizer  : Tokenizer
+    use_text   : bool
 
     training_data : list
 
-    def __init__(self, train: bool, weight_path: str = "routing.weights.h5", token_path: str = "token_map.json") -> None:
+    def __init__(self, train: bool, weight_path: str = "routing.weights.h5", token_path: str | None = "token_map.json",
+                 use_text: bool | None = None, feature_layers: tuple[int, ...] = FEATURE_LAYERS,
+                 head_layers: tuple[int, ...] = HEAD_LAYERS) -> None:
+        self.use_text  = USE_TEXT if use_text is None else use_text
         self.tokenizer = Tokenizer(oov_token="<OOV>")
 
         if not train:
-            with open(token_path, "r") as file:
-                self.tokenizer = tokenizer_from_json(file.read())
+            # a features-only model never tokenizes, so it doesn't need the token map
+            if self.use_text:
+                with open(token_path, "r") as file:
+                    self.tokenizer = tokenizer_from_json(file.read())
 
             self.vocab_size = len(self.tokenizer.word_index)
-            self.model      = self.get_model_architecture()
+            self.model      = self.get_model_architecture(FEATURE_COUNT, feature_layers, head_layers)
             self.model.load_weights(weight_path)
         else:
             print("=== Loading training data ===")
-            time_elapsed = time()
+            start = time()
 
             self.training_data = load_training_data()
 
-            print(f"=== Loaded training data (took {(time_elapsed := (time() - time_elapsed))}s) ===")
+            print(f"=== Loaded training data (took {time() - start:.1f}s) ===")
             print( "=== Fitting tokenizer ===")
-            time_elapsed = time()
+            start = time()
 
             self.tokenizer.fit_on_texts([m.text for log in self.training_data for m in log.messages])
             self.tokenizer.fit_on_texts([SELF_TAG, OTHER_TAG, TARGET_TAG])
 
-            print(f"=== Fitted tokenizer (took {(time_elapsed := (time() - time_elapsed))}s) ===")
+            print(f"=== Fitted tokenizer (took {time() - start:.1f}s) ===")
 
             self.vocab_size = len(self.tokenizer.word_index)
-            self.model, history = self.train_model()
-
-            # save history to a file with timestamp as name
-            with open(filename := f"{int(time())}.json", "w") as file:
-                json.dump({k: np.asarray(v).tolist() for k, v in history.history.items()}, file)
-
-            print(f"=== Saved history to {filename} ===")
-
-            self.save_weights()
-            self.save_token_map()
 
 
     def tokenize(self, text: str, length: int = TOKENS_PER_MESSAGE):
@@ -255,7 +245,7 @@ class MachineLearning:
         for units in feature_layers:
             features = keras.layers.Dense(units, activation="relu")(features)
 
-        if USE_TEXT:
+        if self.use_text:
             text_input = keras.Input(shape=(HISTORY, TOKENS_PER_MESSAGE,), dtype="int32", name="text")
 
             text = keras.layers.Embedding             (self.vocab_size + 1, TEXT_VECTOR_SIZE)(      text_input)
@@ -288,14 +278,14 @@ class MachineLearning:
     def prepare_point(self, window: list[Message], person: str) -> dict[str, np.ndarray]:
         """
         Encodes a single window for the model. The text uses the last HISTORY messages,
-        the features use up to the last FEATURE_HISTORY
+        the features use up to the last FEATURE_HISTORY. Only the text needs a full HISTORY
         """
-        if len(window) < HISTORY:
+        if self.use_text and len(window) < HISTORY:
             raise ValueError(f"Expected at least {HISTORY} messages, got {len(window)}")
 
         point = {"features": np.array(self.compute_features(window[-FEATURE_HISTORY:], person), dtype="float32")}
 
-        if USE_TEXT:
+        if self.use_text:
             point["text"] = np.stack([self.tokenize(self.clean_text(m, person)) for m in window[-HISTORY:]]).astype("int32")
 
         return point
@@ -325,7 +315,7 @@ class MachineLearning:
                     for person in authors:
                         point = self.prepare_point(window, person)
 
-                        if USE_TEXT:
+                        if self.use_text:
                             x_text.append(point["text"])
 
                         x_features.append(point["features"])
@@ -333,61 +323,10 @@ class MachineLearning:
 
         x = {"features": np.array(x_features, dtype="float32")}
 
-        if USE_TEXT:
+        if self.use_text:
             x["text"] = np.array(x_text, dtype="int32")
 
         return x, np.array(t, dtype="float32").reshape(-1, 1)
-
-    def train_model(self) -> tuple[keras.Model, dict]:
-        """
-        Trains the model with the specified hyperparameters
-        """
-        # === Data formatting ===
-        print("=== Formatting data ===")
-        time_elapsed = time()
-
-        x_train, t_train = self.format_data(self.training_data)
-        x_valid, t_valid = self.format_data(load_messaged_split(VALIDATION_SPLIT))
-
-        print(f"=== Finished formatting data (took {(time_elapsed := (time() - time_elapsed))}s) ===")
-
-        print("Label imbalance: " + str(np.mean(t_train)))
-
-        return self.fit_model(x_train, t_train, x_valid, t_valid)
-
-    def fit_model(self, x_train: dict[str, np.ndarray], t_train: np.ndarray, x_valid: dict[str, np.ndarray], t_valid: np.ndarray,
-                  feature_count: int = FEATURE_COUNT, feature_layers: tuple[int, ...] = FEATURE_LAYERS,
-                  head_layers: tuple[int, ...] = HEAD_LAYERS) -> tuple[keras.Model, dict]:
-        """
-        Builds and fits a fresh model on already formatted data
-        """
-        print(f"=== Training {EPOCHS} epochs ===")
-
-        model = self.get_model_architecture(feature_count, feature_layers, head_layers)
-
-        # Training
-        model.compile(
-            optimizer=keras.optimizers.Adam(learning_rate=LEARNING_RATE),
-            loss="binary_crossentropy",
-            metrics=[keras.metrics.Precision(), keras.metrics.F1Score(threshold=ROUTING_CUTOFF, average="micro"), keras.metrics.AUC()]
-        )
-
-        history = model.fit(
-            x_train,
-            t_train,
-
-            validation_data = (x_valid, t_valid),
-            epochs          = EPOCHS,
-            verbose         = VERBOSE,
-            batch_size      = BATCH_SIZE,
-            callbacks       = [
-                TqdmCallback(verbose=2),
-                keras.callbacks.EarlyStopping(monitor="val_loss", mode="min", patience=5, restore_best_weights=True)
-            ],
-            class_weight = {0: 1.0, 1: POSITIVE_WEIGHT}
-        )
-
-        return (model, history)
 
     def save_weights(self, filename: str = "routing.weights.h5") -> None:
         self.model.save_weights(filename)
@@ -402,56 +341,3 @@ class MachineLearning:
         """
         point = self.prepare_point(messages[-FEATURE_HISTORY:], person)
         return float(self.model.predict({k: v[None] for k, v in point.items()}, verbose=0)[0, 0])
-
-
-if __name__ == "__main__":
-    from sys import argv
-
-    mode = argv[1] if len(argv) > 1 else "train"
-
-    model = None
-
-    if mode == "train":
-        model = MachineLearning(True)
-    elif mode == "test":
-        model = MachineLearning(False, "routing.weights.h5", "token_map.json")
-
-        data = """[09:14] <crimsun> kleedrac: I'm afraid not. Any version of mplayer except for -k7* should work for your cpu
-    [09:14] <intinig> does a subversion gnome client exist?
-    [09:14] <kleedrac> crimsun: Hmmm ... I wonder why it does that?
-    [09:15] <will> best media player: VLC /get wxvlc) It plays everything!
-    [09:15] <|QuaD-> will: totem has caused me no troubles
-    [09:15] <|QuaD-> totem xine
-    [09:15] <crimsun> kleedrac: good question.
-    [09:15] <Tsjoklate> |QuaD same here.. totem-xine werkt geweldig
-    [09:15] <crimsun> intinig: I don't see one in warty or hoary
-    [09:15] <kleedrac> xine is working great for video and xmms works great for mp3's but some of my music is in .wma as my wife ripped it"""
-
-        print(model.inference(lines_to_messages(data.split()), "crimsun"))
-    else:
-        model = MachineLearning(False, input("Weight path: "), input("Token map path: "))
-
-    while (command := input("> ")) != "exit":
-        if command == "save_weights":
-            model.save_weights(input("Filename: "))
-
-        elif command == "save_token_map":
-            model.save_token_map(input("Filename: "))
-
-        elif command == "inference":
-            person = input("Person: ")
-            window = []
-
-            print(f"Now, input up to the last {CANDIDATE_POOL} messages (older first), and a blank line to finish")
-
-            while len(window) < CANDIDATE_POOL:
-                if not (line := input("Message: ")):
-                    if len(window) >= HISTORY:
-                        break
-
-                    print(f"Need at least {HISTORY} messages")
-                    continue
-
-                window.append(line)
-
-            print(model.inference(lines_to_messages(window), person))

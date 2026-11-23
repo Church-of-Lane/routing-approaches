@@ -1,0 +1,52 @@
+{"model": "gemma4:e4b", "options": {"temperature": 0, "seed": 0, "num_ctx": 8192}, "schema": {"type": "object", "properties": {"answer": {"type": "string", "enum": ["0.0", "0.1", "0.2", "0.3", "0.4", "0.5", "0.6", "0.7", "0.8", "0.9", "1.0"]}}, "required": ["answer"]}, "prompt": "Decide whether {name} should reply to what was just said.\n\nConversation so far:\n<transcript>\n{transcript}\n</transcript>\n\nScore the latest message from 0 to 1.\n\nScore 0.0 when:\n- it is plainly aimed at someone else\n- it is empty, a duplicate, or cut off mid-thought\n- it is a bare reaction with nothing in it to answer\n\nScore 0.1\u20130.4 when:\n- it is small talk aimed at the room rather than at them\n- the subject is nothing to do with them, but ignoring it would be rude\n\nScore 0.5\u20130.7 when:\n- it continues a conversation they are already part of\n- it is a straightforward question they can answer\n\nScore 0.8\u20131.0 when:\n- they are addressed by name, or asked something directly\n- a reply would matter"}
+{"id": "2005-07-06_14:1000:_Grunt_", "prediction": "0.3", "raw": "{\n  \"answer\": \n  \"0.3\"\n}", "seconds": 31.31, "prompt_tokens": 751}
+{"id": "2005-07-06_14:1000:enrico", "prediction": "0.7", "raw": "{\n\"answer\": \"0.7\"\n}", "seconds": 11.01, "prompt_tokens": 750}
+{"id": "2005-07-06_14:1000:holycow", "prediction": "0.7", "raw": "{\n\"answer\": \n\"0.7\"\n}", "seconds": 11.22, "prompt_tokens": 751}
+{"id": "2005-07-06_14:1000:rasputnik", "prediction": "0.6", "raw": "{\n\"answer\": \n\"0.6\"\n}", "seconds": 15.0, "prompt_tokens": 750}
+{"id": "2005-07-06_14:1000:rob^", "prediction": "0.0", "raw": "{\n\"answer\": \"0.0\"\n}", "seconds": 14.19, "prompt_tokens": 750}
+{"id": "2005-07-06_14:1000:sktrdie", "prediction": "0.7", "raw": "{\n  \"answer\": \n  \"0.7\"\n}", "seconds": 13.67, "prompt_tokens": 751}
+{"id": "2005-07-06_14:1001:_Grunt_", "prediction": "0.3", "raw": "{\n\"answer\": \n\"0.3\"\n}", "seconds": 14.86, "prompt_tokens": 747}
+{"id": "2005-07-06_14:1001:enrico", "prediction": "0.9", "raw": "{\n\"answer\": \n\"0.9\"\n}", "seconds": 8.62, "prompt_tokens": 746}
+{"id": "2005-07-06_14:1001:holycow", "prediction": "0.6", "raw": "{\n\"answer\": \n\"0.6\"\n}", "seconds": 12.96, "prompt_tokens": 747}
+{"id": "2005-07-06_14:1001:jonbusby", "prediction": "0.6", "raw": "{\n  \"answer\": \n  \"0.6\"\n}", "seconds": 11.0, "prompt_tokens": 747}
+{"id": "2005-07-06_14:1001:rasputnik", "prediction": "0.6", "raw": "{\n\"answer\": \n\"0.6\"\n}", "seconds": 9.1, "prompt_tokens": 746}
+{"id": "2005-07-06_14:1001:rob^", "prediction": "0.1", "raw": "{\n\"answer\": \n\"0.1\"\n}", "seconds": 11.78, "prompt_tokens": 746}
+{"id": "2005-07-06_14:1001:sktrdie", "prediction": "0.0", "raw": "{\"answer\": \n    \"0.0\"\n}", "seconds": 12.64, "prompt_tokens": 747}
+{"id": "2005-07-06_14:1002:_Grunt_", "prediction": "0.6", "raw": "{\n  \"answer\": \n  \"0.6\"\n}", "seconds": 13.42, "prompt_tokens": 743}
+{"id": "2005-07-06_14:1002:enrico", "prediction": "0.0", "raw": "{\n\"answer\": \n\"0.0\"\n}", "seconds": 11.47, "prompt_tokens": 742}
+{"id": "2005-07-06_14:1002:jonbusby", "prediction": "0.9", "raw": "{\n\"answer\": \n\"0.9\"\n}", "seconds": 9.66, "prompt_tokens": 743}
+{"id": "2005-07-06_14:1002:rasputnik", "prediction": "0.0", "raw": "{\n\"answer\": \n\"0.0\"\n}", "seconds": 12.82, "prompt_tokens": 742}
+{"id": "2005-07-06_14:1002:rob^", "prediction": "0.9", "raw": "{\n\"answer\": \n\"0.9\"\n}", "seconds": 9.46, "prompt_tokens": 742}
+{"id": "2005-07-06_14:1002:sktrdie", "prediction": "0.7", "raw": "{\n  \"answer\": \n  \"0.7\"\n}", "seconds": 13.34, "prompt_tokens": 743}
+{"id": "2005-07-06_14:1002:xliu", "prediction": "0.3", "raw": "{\n\"answer\": \n\"0.3\"\n}", "seconds": 12.57, "prompt_tokens": 742}
+{"id": "2005-07-06_14:1003:_Grunt_", "prediction": "0.3", "raw": "{\n\"answer\": \n\"0.3\"\n}", "seconds": 11.41, "prompt_tokens": 742}
+{"id": "2005-07-06_14:1003:enrico", "prediction": "0.7", "raw": "{\n  \"answer\": \n  \"0.7\"\n}", "seconds": 9.93, "prompt_tokens": 741}
+{"id": "2005-07-06_14:1003:holycow", "prediction": "0.8", "raw": "{\n\"answer\": \n\"0.8\"\n}", "seconds": 10.72, "prompt_tokens": 742}
+{"id": "2005-07-06_14:1003:jonbusby", "prediction": "0.0", "raw": "{\n\"answer\": \"0.0\"\n}", "seconds": 13.72, "prompt_tokens": 742}
+{"id": "2005-07-06_14:1003:rasputnik", "prediction": "0.0", "raw": "{\n  \"answer\": \"0.0\"\n}", "seconds": 10.9, "prompt_tokens": 741}
+{"id": "2005-07-06_14:1003:xliu", "prediction": "0.3", "raw": "{\n  \"answer\": \n  \"0.3\"\n}", "seconds": 13.98, "prompt_tokens": 741}
+{"id": "2005-07-06_14:1005:_Grunt_", "prediction": "0.3", "raw": "{\n\"answer\": \n\"0.3\"\n}", "seconds": 11.24, "prompt_tokens": 745}
+{"id": "2005-07-06_14:1005:enrico", "prediction": "0.2", "raw": "{\n\"answer\": \n\"0.2\"\n}", "seconds": 13.52, "prompt_tokens": 744}
+{"id": "2005-07-06_14:1005:holycow", "prediction": "0.6", "raw": "{\n\"answer\": \n\"0.6\"\n}", "seconds": 12.56, "prompt_tokens": 745}
+{"id": "2005-07-06_14:1005:jonbusby", "prediction": "0.7", "raw": "{\n\"answer\": \n\"0.7\"\n}", "seconds": 12.9, "prompt_tokens": 745}
+{"id": "2005-07-06_14:1005:rasputnik", "prediction": "0.0", "raw": "{\n\"answer\": \n\"0.0\"\n}", "seconds": 10.4, "prompt_tokens": 744}
+{"id": "2005-07-06_14:1005:rob^", "prediction": "0.3", "raw": "{\n\"answer\": \n\"0.3\"\n}", "seconds": 10.19, "prompt_tokens": 744}
+{"id": "2005-07-06_14:1005:xliu", "prediction": "0.6", "raw": "{\n\"answer\": \n\"0.6\"\n}", "seconds": 13.63, "prompt_tokens": 744}
+{"id": "2005-07-06_14:1006:_Grunt_", "prediction": "0.6", "raw": "{\n  \"answer\": \"0.6\"\n}", "seconds": 17.35, "prompt_tokens": 724}
+{"id": "2005-07-06_14:1006:enrico", "prediction": "0.9", "raw": "{\n\"answer\": \n\"0.9\"\n}", "seconds": 10.66, "prompt_tokens": 723}
+{"id": "2005-07-06_14:1006:jonbusby", "prediction": "0.7", "raw": "{\n\"answer\": \n\"0.7\"\n}", "seconds": 10.79, "prompt_tokens": 724}
+{"id": "2005-07-06_14:1006:rasputnik", "prediction": "0.3", "raw": "{\n  \"answer\": \"0.3\"\n}", "seconds": 11.8, "prompt_tokens": 723}
+{"id": "2005-07-06_14:1006:rob^", "prediction": "0.0", "raw": "{\n  \"answer\": \n  \"0.0\"\n}", "seconds": 11.79, "prompt_tokens": 723}
+{"id": "2005-07-06_14:1006:stig_", "prediction": "0.9", "raw": "{\n\"answer\": \n\"0.9\"\n}", "seconds": 11.62, "prompt_tokens": 723}
+{"id": "2005-07-06_14:1006:xliu", "prediction": "0.3", "raw": "{\n\"answer\": \n\"0.3\"\n}", "seconds": 16.46, "prompt_tokens": 723}
+{"id": "2005-07-06_14:1007:_Grunt_", "prediction": "0.0", "raw": "{\n\"answer\": \"0.0\"\n}", "seconds": 14.89, "prompt_tokens": 730}
+{"id": "2005-07-06_14:1007:enrico", "prediction": "0.0", "raw": "{\"answer\": \n    \"0.0\"\n}", "seconds": 11.47, "prompt_tokens": 729}
+{"id": "2005-07-06_14:1007:jonbusby", "prediction": "0.3", "raw": "{\n  \"answer\": \n  \"0.3\"\n}", "seconds": 12.92, "prompt_tokens": 730}
+{"id": "2005-07-06_14:1007:rasputnik", "prediction": "0.3", "raw": "{\n  \"answer\": \"0.3\"\n}", "seconds": 11.42, "prompt_tokens": 729}
+{"id": "2005-07-06_14:1007:rob^", "prediction": "0.6", "raw": "{\n  \"answer\": \n  \"0.6\"\n}", "seconds": 13.19, "prompt_tokens": 729}
+{"id": "2005-07-06_14:1007:stig_", "prediction": "0.9", "raw": "{\n\"answer\": \n\"0.9\"\n}", "seconds": 12.83, "prompt_tokens": 729}
+{"id": "2005-07-06_14:1007:xliu", "prediction": "0.0", "raw": "{\n  \"answer\": \"0.0\"\n}", "seconds": 12.91, "prompt_tokens": 729}
+{"id": "2005-07-06_14:1008:_Grunt_", "prediction": "0.0", "raw": "{\n\"answer\": \"0.0\"\n}", "seconds": 14.95, "prompt_tokens": 731}
+{"id": "2005-07-06_14:1008:enrico", "prediction": "0.8", "raw": "{\n\"answer\": \n\"0.8\"\n}", "seconds": 12.2, "prompt_tokens": 730}
+{"id": "2005-07-06_14:1008:jonbusby", "prediction": "0.8", "raw": "{\n  \"answer\": \n  \"0.8\"\n}", "seconds": 10.93, "prompt_tokens": 731}
+{"id": "2005-07-06_14:1008:rasputnik", "prediction": "0.2", "raw": "{\n  \"answer\": \n  \"0.2\"\n}", "seconds": 16.36, "prompt_tokens": 730}
