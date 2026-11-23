@@ -555,3 +555,79 @@ human (subset)               28          3     0.6071     0.2143     1.0000     
 mute beats symbolic on F1 (0.59 vs 0.54) and by a lot on AUC (0.93 vs 0.78). Precision is about the same, so the gain comes
 from recall: it catches responders that weren't directly mentioned. Its test scores are a little higher than its dev scores,
 so it isn't overfit to dev. The human subset is only 3 positives, so those rows don't say much either way.
+
+## Sweeps
+Both sweeps use the defaults in machine_learning.py (text branch on, learning rate 1e-4, early stopping on `val_loss`
+with patience 5). The data is formatted once and cached, and every run is reseeded with `SEED`, so the only thing
+that changes between runs is the swept setting. The metrics are on the dev split at cutoff 0.5 (15908 points, 1159
+positives), so they can be compared with the v4 models above. "Best epoch" is the epoch that early stopping restored.
+
+### Hidden layers
+`python layer_sweep.py`. Uses all 37 features, and goes from the current 4 hidden dense layers down to 1. Layers are
+removed from the current setup. With 1 layer, the raw features are concatenated with the text branch directly. Each run
+is in `layer_sweep/<n>_layers/` (weights, history, token map). To load one, pass its layers to `get_model_architecture`
+(or set `FEATURE_LAYERS`/`HEAD_LAYERS`).
+
+| Hidden layers | Features branch | Head     | Params  | Accuracy | Precision | Recall | F1     | AUC    | Val loss | Best epoch / epochs |
+|---------------|-----------------|----------|---------|----------|-----------|--------|--------|--------|----------|---------------------|
+| 4 (current)   | 64 → 32         | 32 → 16  | 477,865 | 0.9344   | 0.5443    | 0.6152 | 0.5776 | 0.9091 | 0.1732   | 15 / 20             |
+| 3             | 64              | 32 → 16  | 476,809 | 0.9354   | 0.5501    | 0.6255 | **0.5854** | **0.9096** | **0.1731** | 18 / 23     |
+| 2             | 64              | 32       | 476,297 | 0.9351   | 0.5482    | 0.6178 | 0.5809 | 0.9094 | 0.1754   | 12 / 17             |
+| 1             | —               | 32       | 473,001 | 0.9351   | 0.5492    | 0.6066 | 0.5765 | 0.8966 | 0.1746   | 40 / 45             |
+
+4, 3 and 2 layers are basically the same. They're within 0.008 F1 and 0.0005 AUC of each other, which is about single-run
+noise (the 4-layer run is the same setup as slowpoke, and they differ by 0.004 F1). 1 layer is the only one that's clearly
+worse: AUC drops to 0.897, and it needed 45 epochs to get there. So the features need at least one layer of their own before
+being joined with the text, but more depth than that doesn't help. Almost all the parameters are in the embedding anyway, so
+removing layers barely changes the model size.
+
+The 3-layer version, which did best (`FEATURE_LAYERS = (64,)`, `HEAD_LAYERS = (32, 16)`):
+
+![v4 3 hidden layer architecture](v4/architecture_3_layers.png)
+
+Drawn with `python architecture_diagram.py models/v4/architecture_3_layers.png "64" "32,16" "v4 routing model, 3 hidden layers"`.
+
+The same layers without the text branch (`USE_TEXT = False`), like mute. This one hasn't been trained yet, since the sweep
+had the text branch on:
+
+![v4 3 hidden layer features-only architecture](v4/architecture_3_layers_features_only.png)
+
+Drawn with `python architecture_diagram.py models/v4/architecture_3_layers_features_only.png "64" "32,16" "v4, 3 hidden layers (features only)" --no-text`.
+
+#### Without the text branch
+`python layer_sweep.py models/layer_sweep_no_text --no-text`. Same configs, data and seeding as above, but with
+`USE_TEXT = False`, so it's just the 37 features going through the dense layers. Without the text branch, "features branch"
+and "head" are simply stacked, so only the total matters. 4 layers is the same architecture as mute. Each run is in
+`layer_sweep_no_text/<n>_layers/`. To load one, set `USE_TEXT = False` as well as the layers.
+
+| Hidden layers | Features branch | Head     | Params | Accuracy | Precision | Recall | F1     | AUC    | Val loss | Best epoch / epochs |
+|---------------|-----------------|----------|--------|----------|-----------|--------|--------|--------|----------|---------------------|
+| 4 (mute)      | 64 → 32         | 32 → 16  | 6,113  | 0.9341   | 0.5404    | 0.6342 | 0.5836 | **0.9133** | **0.1739** | 69 / 74     |
+| 3             | 64              | 32 → 16  | 5,057  | 0.9344   | 0.5421    | **0.6393** | **0.5867** | 0.9131 | 0.1746 | 100 / 100 |
+| 2             | 64              | 32       | 4,545  | 0.9336   | 0.5374    | 0.6316 | 0.5807 | **0.9133** | 0.1753 | 98 / 100     |
+| 1             | —               | 32       | 1,249  | **0.9346** | **0.5448** | 0.6247 | 0.5820 | 0.9108 | 0.1796 | 100 / 100     |
+
+Again 4, 3 and 2 layers are tied: F1 0.581 to 0.587, and AUC 0.9131 to 0.9133. 3 layers is the best on F1 again, but only by 0.003,
+which is noise. The difference from the text sweep is the 1-layer model. It stays close to the others (AUC 0.911, F1 0.582),
+though its val loss is the worst (0.180). With the text branch, 1 layer dropped to an AUC of 0.897. So that drop wasn't because
+one layer is too shallow. It came from feeding the raw features straight into the join with the text branch.
+
+Compared with the text sweep, every no-text model matches or beats its text counterpart on AUC (0.911–0.913 vs 0.897–0.910),
+and F1 is about the same, with roughly 1% of the parameters. This is the same result as mute vs slowpoke: the text branch
+isn't adding anything.
+
+These runs also train much longer. They take 74 to 100 epochs compared with 17 to 45 with text, though each one only takes
+37 to 50 seconds. Three of the four hit the 100-epoch cap with the best epoch at or near the end. So at a learning rate of 1e-4
+they were still slowly improving, and these numbers might be a little low. Not by much, though: from epoch 50 to the end,
+val loss went down by at most 0.0015, and val AUC barely changed over the last 10 epochs.
+
+### Feature count
+`python feature_sweep.py 10 37`. Uses the first N features (in the order `compute_features` returns them) with the
+current 4 hidden layers. Each run's weights and history are in `feature_sweep/` as `<n>.weights.h5` and
+`<n>.history.json`, and they all share `feature_sweep/token_map.json`. Paused after the first run so the layer sweep could
+go first. Resume with the same command; finished counts are skipped.
+
+| Features | Accuracy | Precision | Recall | F1     | AUC    | Val loss | Best epoch / epochs |
+|----------|----------|-----------|--------|--------|--------|----------|---------------------|
+| 10       | 0.9319   | 0.5281    | 0.6083 | 0.5654 | 0.8869 | 0.1825   | 23 / 28             |
+| 11–37    | pending  |           |        |        |        |          |                     |

@@ -20,6 +20,8 @@ HISTORY            = 20  # messages the text model reads
 CANDIDATE_POOL     = 20  # messages candidates are drawn from
 FEATURE_HISTORY    = 100 # messages the hand-made features look back over
 FEATURE_COUNT      = 37
+FEATURE_LAYERS     = (64, 32) # dense layers on the features before joining the text branch
+HEAD_LAYERS        = (32, 16) # dense layers after joining
 TOKENS_PER_MESSAGE = 32
 TEXT_VECTOR_SIZE   = 8
 ROUTING_CUTOFF     = 0.5
@@ -242,14 +244,16 @@ class MachineLearning:
             len(candidates) / CANDIDATE_POOL,
         ]
 
-    def get_model_architecture(self) -> keras.Model:
+    def get_model_architecture(self, feature_count: int = FEATURE_COUNT, feature_layers: tuple[int, ...] = FEATURE_LAYERS,
+                               head_layers: tuple[int, ...] = HEAD_LAYERS) -> keras.Model:
         """
-        Gives the model architecture
+        Gives the model architecture. feature_count < FEATURE_COUNT takes only the first feature_count features
         """
-        features_input       = keras.Input(shape=(FEATURE_COUNT,),               dtype="float32", name="features")
+        features_input       = keras.Input(shape=(feature_count,),               dtype="float32", name="features")
 
-        features = keras.layers.Dense(64, activation="relu")(features_input)
-        features = keras.layers.Dense(32, activation="relu")(features      )
+        features = features_input
+        for units in feature_layers:
+            features = keras.layers.Dense(units, activation="relu")(features)
 
         if USE_TEXT:
             text_input = keras.Input(shape=(HISTORY, TOKENS_PER_MESSAGE,), dtype="int32", name="text")
@@ -266,9 +270,10 @@ class MachineLearning:
             inner  = features
             inputs = [features_input]
 
-        inner = keras.layers.Dense(32, activation="relu"   )(inner)
-        inner = keras.layers.Dense(16, activation="relu"   )(inner)
-        out   = keras.layers.Dense(1,  activation="sigmoid")(inner)
+        for units in head_layers:
+            inner = keras.layers.Dense(units, activation="relu")(inner)
+
+        out = keras.layers.Dense(1, activation="sigmoid")(inner)
 
         return keras.Model(inputs=inputs, outputs=out)
 
@@ -348,9 +353,17 @@ class MachineLearning:
 
         print("Label imbalance: " + str(np.mean(t_train)))
 
+        return self.fit_model(x_train, t_train, x_valid, t_valid)
+
+    def fit_model(self, x_train: dict[str, np.ndarray], t_train: np.ndarray, x_valid: dict[str, np.ndarray], t_valid: np.ndarray,
+                  feature_count: int = FEATURE_COUNT, feature_layers: tuple[int, ...] = FEATURE_LAYERS,
+                  head_layers: tuple[int, ...] = HEAD_LAYERS) -> tuple[keras.Model, dict]:
+        """
+        Builds and fits a fresh model on already formatted data
+        """
         print(f"=== Training {EPOCHS} epochs ===")
 
-        model = self.get_model_architecture()
+        model = self.get_model_architecture(feature_count, feature_layers, head_layers)
 
         # Training
         model.compile(
