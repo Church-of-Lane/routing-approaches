@@ -1,0 +1,41 @@
+=== Scoring test data ===
+=== Scoring human subset (2005-07-06_14, target stig_) ===
+=== Scoring test data with ML model (models/v4/mute/routing.weights.h5) ===
+=== Results at cutoff 0.5 ===
+approach                 points  positives   accuracy  precision     recall         f1        auc
+symbolic (test)           30221       2104     0.9367     0.5470     0.5252     0.5359     0.7827
+ml (test)                 30221       2104     0.9353     0.5278     0.6759     0.5927     0.9274
+symbolic (subset)            28          3     0.7857     0.0000     0.0000     0.0000     0.6067
+ml (subset)                  28          3     0.7500     0.1667     0.3333     0.2222     0.6733
+human (subset)               28          3     0.6071     0.2143     1.0000     0.3529     0.8067
+
+=== Subset points ===
+index   gold  human  symbolic     ml  message
+1006       0   1.00      1.00   0.79  [02:02] <holycow> stig_, unfortunately for now it requires a bit of work
+1007       0   0.80      0.17   0.24  [02:02] <holycow> a: you will only be able to read the ntfs files
+1008       1   0.80      0.14   0.44  [02:03] <holycow> b) you wont be able to write to an ntfs partition
+1010       0   1.00      0.12   0.46  [02:03] <holycow> ms keeps ntfs info secret, and any interim support for write has essentially dissapeared as no one cares enough to maintain the components
+1011       0   0.00      0.11   0.14  [02:03] <holycow> okay
+1012       0   0.00      0.10   0.11  [02:03] <holycow> then
+1013       0   0.00      0.00   0.03  [02:03] <jonbusby> hmmm hang on
+1014       0   0.00      0.00   0.03  [02:03] <jonbusby> may have solved this
+1015       0   0.00      0.00   0.02  [02:03] <jonbusby> brb
+1016       0   0.50      0.03   0.21  [02:03] <holycow> 1. you need to find your ntfs partition with sudo fdisk -l
+1018       0   0.50      0.02   0.16  [02:04] <holycow> 2. you need to create a folder in say /media to wher eyou will mount to the ntfs partition ... mine is /media/ntfs
+1019       1   1.00      0.02   0.13  [02:04] <holycow> 3. you need to add info about the partition to your /etc/fstab
+1020       0   1.00      1.00   0.60  [02:04] <jonbusby> stig_ the ubuntuguide.org is really good on this
+1021       0   0.50      0.01   0.06  [02:04] <holycow> i'll paste a sample that i use
+1022       0   0.00      0.01   0.06  [02:05] <holycow> oh i don't have the line on this system
+1024       1   0.50      0.01   0.61  [02:05] <holycow> google for fstab mount ntfs ... you will get lots of examples of the entry
+1025       0   0.50      0.01   0.38  [02:05] <holycow> the 4. sudo mount /media/ntfs
+1028       0   0.50      0.00   0.63  [02:05] <holycow> then 5. you can browse to /metdia/ntfs and read the files from there
+1029       0   0.50      0.00   0.52  [02:06] <holycow> i presume in the future some outomount feature will be available, not sure
+1031       0   1.00      1.00   0.73  [02:06] <holycow> stig_, google step 3 then :) you will need to reaserch a bit, i don't intend on teaching you how to use nano or whatever :)
+1033       0   0.00      0.00   0.16  [02:07] <[noobuntu]> anyone familiar w/ a prob getting the sound running on a K7S41Gx mainboard?
+1034       0   0.00      0.04   0.18  [02:07] <holycow> no, i have tons of those, run ubuntu just fine
+1035       0   0.00      0.04   0.40  [02:08] <holycow> how new is it?
+1036       0   0.00      0.04   0.25  [02:08] <holycow> maybe they have changed the chipset again
+1039       0   0.00      0.00   0.03  [02:08] <Shufla> hello ubuntiers :)
+1041       0   0.00      0.00   0.05  [02:09] <[noobuntu]> chips are SIS SI7012 with CMI 9761 mixer
+1043       0   0.00      0.00   0.12  [02:09] <Dreco> Question: How do I search for a specific file name ?
+1045       0   0.00      0.00   0.01  [02:09] <Shufla> Dreco: find <dir> -name <fname>

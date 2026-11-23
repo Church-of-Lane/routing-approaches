@@ -1,0 +1,9 @@
+=== Evaluating at cutoff 0.5 ===
+points     15908
+positives  1159
+accuracy   0.9333
+precision  0.5356
+recall     0.6368
+f1         0.5818
+auc        0.9091
+In total, took 5.2058210372924805

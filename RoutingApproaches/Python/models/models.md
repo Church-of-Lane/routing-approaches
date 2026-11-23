@@ -376,6 +376,8 @@ Other changes from v3:
 - Precision added as a training metric
 
 ## Architecture
+![v4 architecture](v4/architecture.png)
+
 ```
    text (B, 20, 32) int32                      features (B, 37) float32
    20 msgs × 32 tokens, each msg prefixed      hand-made, over last 100 msgs
@@ -489,3 +491,67 @@ recall     0.5988
 f1         0.5837
 auc        0.9075
 ```
+
+### slowpoke
+Same as reblgh, but the learning rate is lowered from 1e-3 to 1e-4. The point was to see the learning curve, since at 1e-3
+nearly all the learning happens inside the first epoch. This time it's visible: train loss starts at 0.376 and val AUC climbs
+from 0.892 to 0.909 over the first ~10 epochs. It ran 20 epochs and restored epoch 15.
+
+It ended up in about the same place, though. F1 and AUC are basically the same as reblgh, but it trades precision for recall
+(more like blgh). Its val loss is actually worse than reblgh's (0.180 vs 0.167), so the lower learning rate doesn't help here.
+
+#### Performance
+```
+=== Evaluating at cutoff 0.5 ===
+points     15908
+positives  1159
+accuracy   0.9333
+precision  0.5356
+recall     0.6368
+f1         0.5818
+auc        0.9091
+```
+
+### mute
+Same as slowpoke, but without the text branch (`USE_TEXT = False`). It's just the features going into Dense 64 → 32 →
+32 → 16 → 1, so 6,113 parameters instead of ~478k. To load these weights, `USE_TEXT` has to be set to `False`.
+
+![v4 features-only architecture](v4/architecture_features_only.png)
+
+It does as well as slowpoke, or slightly better: F1 0.583 vs 0.582, AUC 0.913 vs 0.909, val loss 0.179 vs 0.180. It also
+formats data about 3.5x faster since nothing gets tokenized. So the text branch isn't adding anything on top of the
+features, which matches what v3 d/e showed. The differences are small enough to be noise from a single run, but the text
+branch clearly isn't helping. Any further gains probably have to come from the features, or from a text model that can
+actually read (the averaged 8-dim embeddings are likely too crude to learn anything the features don't already capture).
+
+It ran 35 epochs and restored epoch 30. The val curves were still very slowly improving, so it's not really overfitting.
+It's just reached the limit of the features.
+
+#### Performance
+```
+=== Evaluating at cutoff 0.5 ===
+points     15908
+positives  1159
+accuracy   0.9333
+precision  0.5354
+recall     0.6393
+f1         0.5828
+auc        0.9126
+```
+
+#### Test split vs symbolic
+Ran with `python eval.py --ml models/v4/mute/routing.weights.h5 models/v4/mute/token_map.json --no-text`. This is the first
+ML model evaluated on the test split. It scores the same points as the symbolic approach, with the same labels.
+
+```
+approach                 points  positives   accuracy  precision     recall         f1        auc
+symbolic (test)           30221       2104     0.9367     0.5470     0.5252     0.5359     0.7827
+ml (test)                 30221       2104     0.9353     0.5278     0.6759     0.5927     0.9274
+symbolic (subset)            28          3     0.7857     0.0000     0.0000     0.0000     0.6067
+ml (subset)                  28          3     0.7500     0.1667     0.3333     0.2222     0.6733
+human (subset)               28          3     0.6071     0.2143     1.0000     0.3529     0.8067
+```
+
+mute beats symbolic on F1 (0.59 vs 0.54) and by a lot on AUC (0.93 vs 0.78). Precision is about the same, so the gain comes
+from recall: it catches responders that weren't directly mentioned. Its test scores are a little higher than its dev scores,
+so it isn't overfit to dev. The human subset is only 3 positives, so those rows don't say much either way.

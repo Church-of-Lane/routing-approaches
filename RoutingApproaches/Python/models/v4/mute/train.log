@@ -1,0 +1,228 @@
+=== Loading training data ===
+=== Loaded training data (took 0.8421669006347656s) ===
+=== Fitting tokenizer ===
+=== Fitted tokenizer (took 1.138725757598877s) ===
+=== Formatting data ===
+=== Finished formatting data (took 34.57405686378479s) ===
+Label imbalance: 0.063322134
+=== Training 100 epochs ===
+0epoch [00:00, ?epoch/s]  0%|          | 0/100 [00:00<?, ?epoch/s]
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+  0%|          | 1.00/857 [00:00<08:37, 1.65batch/s, auc=0.521, f1_score=0.0995, loss=0.789, precision=0.0533][A
+ 21%|██        | 177/857 [00:00<00:02, 338batch/s, auc=0.546, f1_score=0.0813, loss=0.703, precision=0.0635]  [A
+ 41%|████      | 349/857 [00:00<00:00, 633batch/s, auc=0.671, f1_score=0.181, loss=0.571, precision=0.169]  [A
+ 61%|██████    | 520/857 [00:00<00:00, 885batch/s, auc=0.761, f1_score=0.309, loss=0.485, precision=0.287][A
+ 81%|████████  | 693/857 [00:01<00:00, 1.10kbatch/s, auc=0.803, f1_score=0.377, loss=0.438, precision=0.347][A  1%|          | 1/100 [00:01<02:02,  1.24s/epoch, auc=0.827, f1_score=0.418, loss=0.408, precision=0.384, val_auc=0.896, val_f1_score=0.565, val_loss=0.19, val_precision=0.533]100%|██████████| 857/857 [00:01<00:00, 689batch/s, auc=0.827, f1_score=0.418, loss=0.408, precision=0.384]  
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 18%|█▊        | 154/857 [00:00<00:00, 1.53kbatch/s, auc=0.914, f1_score=0.587, loss=0.278, precision=0.538][A
+ 39%|███▊      | 330/857 [00:00<00:00, 1.66kbatch/s, auc=0.914, f1_score=0.587, loss=0.279, precision=0.534][A
+ 59%|█████▉    | 506/857 [00:00<00:00, 1.71kbatch/s, auc=0.915, f1_score=0.588, loss=0.278, precision=0.534][A
+ 80%|███████▉  | 683/857 [00:00<00:00, 1.73kbatch/s, auc=0.914, f1_score=0.587, loss=0.279, precision=0.533][A  2%|▏         | 2/100 [00:01<01:20,  1.21epoch/s, auc=0.915, f1_score=0.587, loss=0.279, precision=0.534, val_auc=0.902, val_f1_score=0.569, val_loss=0.186, val_precision=0.528]100%|██████████| 857/857 [00:00<00:00, 1.61kbatch/s, auc=0.915, f1_score=0.587, loss=0.279, precision=0.534]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▊        | 160/857 [00:00<00:00, 1.60kbatch/s, auc=0.917, f1_score=0.589, loss=0.272, precision=0.535][A
+ 39%|███▉      | 337/857 [00:00<00:00, 1.70kbatch/s, auc=0.917, f1_score=0.59, loss=0.275, precision=0.535] [A
+ 60%|██████    | 515/857 [00:00<00:00, 1.73kbatch/s, auc=0.918, f1_score=0.592, loss=0.274, precision=0.535][A
+ 81%|████████  | 692/857 [00:00<00:00, 1.75kbatch/s, auc=0.917, f1_score=0.589, loss=0.276, precision=0.533][A  3%|▎         | 3/100 [00:02<01:06,  1.45epoch/s, auc=0.917, f1_score=0.59, loss=0.275, precision=0.534, val_auc=0.905, val_f1_score=0.573, val_loss=0.185, val_precision=0.528] 100%|██████████| 857/857 [00:00<00:00, 1.63kbatch/s, auc=0.917, f1_score=0.59, loss=0.275, precision=0.534] 
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▊        | 160/857 [00:00<00:00, 1.60kbatch/s, auc=0.919, f1_score=0.591, loss=0.27, precision=0.535][A
+ 39%|███▉      | 337/857 [00:00<00:00, 1.69kbatch/s, auc=0.918, f1_score=0.591, loss=0.273, precision=0.534][A
+ 60%|█████▉    | 514/857 [00:00<00:00, 1.73kbatch/s, auc=0.919, f1_score=0.593, loss=0.272, precision=0.535][A
+ 81%|████████  | 692/857 [00:00<00:00, 1.74kbatch/s, auc=0.918, f1_score=0.591, loss=0.274, precision=0.534][A  4%|▍         | 4/100 [00:02<00:59,  1.60epoch/s, auc=0.918, f1_score=0.591, loss=0.274, precision=0.533, val_auc=0.906, val_f1_score=0.571, val_loss=0.184, val_precision=0.524]100%|██████████| 857/857 [00:00<00:00, 1.64kbatch/s, auc=0.918, f1_score=0.591, loss=0.274, precision=0.533]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▉        | 163/857 [00:00<00:00, 1.62kbatch/s, auc=0.92, f1_score=0.59, loss=0.269, precision=0.533][A
+ 40%|███▉      | 341/857 [00:00<00:00, 1.71kbatch/s, auc=0.919, f1_score=0.591, loss=0.271, precision=0.533][A
+ 61%|██████    | 519/857 [00:00<00:00, 1.74kbatch/s, auc=0.92, f1_score=0.594, loss=0.271, precision=0.535] [A
+ 81%|████████  | 694/857 [00:00<00:00, 1.75kbatch/s, auc=0.919, f1_score=0.592, loss=0.273, precision=0.533][A  5%|▌         | 5/100 [00:03<00:55,  1.70epoch/s, auc=0.919, f1_score=0.592, loss=0.273, precision=0.533, val_auc=0.907, val_f1_score=0.575, val_loss=0.183, val_precision=0.527]100%|██████████| 857/857 [00:00<00:00, 1.63kbatch/s, auc=0.919, f1_score=0.592, loss=0.273, precision=0.533]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▉        | 162/857 [00:00<00:00, 1.61kbatch/s, auc=0.92, f1_score=0.59, loss=0.268, precision=0.532][A
+ 39%|███▉      | 338/857 [00:00<00:00, 1.70kbatch/s, auc=0.92, f1_score=0.592, loss=0.271, precision=0.534][A
+ 59%|█████▉    | 508/857 [00:00<00:00, 1.69kbatch/s, auc=0.92, f1_score=0.594, loss=0.27, precision=0.535] [A
+ 79%|███████▉  | 681/857 [00:00<00:00, 1.70kbatch/s, auc=0.919, f1_score=0.593, loss=0.272, precision=0.534][A  6%|▌         | 6/100 [00:03<00:53,  1.76epoch/s, auc=0.92, f1_score=0.593, loss=0.272, precision=0.534, val_auc=0.908, val_f1_score=0.574, val_loss=0.183, val_precision=0.525] 100%|██████████| 857/857 [00:00<00:00, 1.61kbatch/s, auc=0.92, f1_score=0.593, loss=0.272, precision=0.534] 
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 18%|█▊        | 158/857 [00:00<00:00, 1.57kbatch/s, auc=0.921, f1_score=0.591, loss=0.267, precision=0.533][A
+ 39%|███▉      | 333/857 [00:00<00:00, 1.67kbatch/s, auc=0.921, f1_score=0.592, loss=0.27, precision=0.532] [A
+ 59%|█████▉    | 506/857 [00:00<00:00, 1.69kbatch/s, auc=0.921, f1_score=0.595, loss=0.27, precision=0.534][A
+ 79%|███████▉  | 678/857 [00:00<00:00, 1.70kbatch/s, auc=0.92, f1_score=0.594, loss=0.271, precision=0.533][A
+ 99%|█████████▉| 852/857 [00:00<00:00, 1.71kbatch/s, auc=0.92, f1_score=0.593, loss=0.271, precision=0.533][A  7%|▋         | 7/100 [00:04<00:52,  1.79epoch/s, auc=0.92, f1_score=0.593, loss=0.271, precision=0.533, val_auc=0.909, val_f1_score=0.579, val_loss=0.182, val_precision=0.529]100%|██████████| 857/857 [00:00<00:00, 1.59kbatch/s, auc=0.92, f1_score=0.593, loss=0.271, precision=0.533]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 18%|█▊        | 154/857 [00:00<00:00, 1.53kbatch/s, auc=0.922, f1_score=0.593, loss=0.267, precision=0.534][A
+ 38%|███▊      | 329/857 [00:00<00:00, 1.66kbatch/s, auc=0.921, f1_score=0.594, loss=0.269, precision=0.534][A
+ 59%|█████▉    | 506/857 [00:00<00:00, 1.71kbatch/s, auc=0.921, f1_score=0.596, loss=0.269, precision=0.535][A
+ 79%|███████▉  | 681/857 [00:00<00:00, 1.72kbatch/s, auc=0.92, f1_score=0.594, loss=0.271, precision=0.534] [A  8%|▊         | 8/100 [00:04<00:50,  1.82epoch/s, auc=0.921, f1_score=0.594, loss=0.27, precision=0.534, val_auc=0.909, val_f1_score=0.58, val_loss=0.182, val_precision=0.531] 100%|██████████| 857/857 [00:00<00:00, 1.61kbatch/s, auc=0.921, f1_score=0.594, loss=0.27, precision=0.534]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▊        | 160/857 [00:00<00:00, 1.59kbatch/s, auc=0.922, f1_score=0.593, loss=0.266, precision=0.533][A
+ 38%|███▊      | 329/857 [00:00<00:00, 1.64kbatch/s, auc=0.922, f1_score=0.595, loss=0.268, precision=0.535][A
+ 58%|█████▊    | 494/857 [00:00<00:00, 1.63kbatch/s, auc=0.922, f1_score=0.596, loss=0.269, precision=0.535][A
+ 77%|███████▋  | 663/857 [00:00<00:00, 1.65kbatch/s, auc=0.921, f1_score=0.594, loss=0.27, precision=0.534] [A
+ 97%|█████████▋| 834/857 [00:00<00:00, 1.67kbatch/s, auc=0.921, f1_score=0.595, loss=0.27, precision=0.535][A  9%|▉         | 9/100 [00:05<00:50,  1.82epoch/s, auc=0.921, f1_score=0.595, loss=0.27, precision=0.535, val_auc=0.91, val_f1_score=0.579, val_loss=0.181, val_precision=0.531]100%|██████████| 857/857 [00:00<00:00, 1.56kbatch/s, auc=0.921, f1_score=0.595, loss=0.27, precision=0.535]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▊        | 160/857 [00:00<00:00, 1.60kbatch/s, auc=0.922, f1_score=0.594, loss=0.265, precision=0.533][A
+ 39%|███▉      | 337/857 [00:00<00:00, 1.70kbatch/s, auc=0.922, f1_score=0.595, loss=0.268, precision=0.535][A
+ 60%|█████▉    | 514/857 [00:00<00:00, 1.73kbatch/s, auc=0.922, f1_score=0.597, loss=0.268, precision=0.536][A
+ 81%|████████  | 691/857 [00:00<00:00, 1.74kbatch/s, auc=0.921, f1_score=0.595, loss=0.269, precision=0.535][A 10%|█         | 10/100 [00:06<00:48,  1.84epoch/s, auc=0.922, f1_score=0.595, loss=0.269, precision=0.535, val_auc=0.91, val_f1_score=0.581, val_loss=0.181, val_precision=0.536]100%|██████████| 857/857 [00:00<00:00, 1.63kbatch/s, auc=0.922, f1_score=0.595, loss=0.269, precision=0.535]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▊        | 159/857 [00:00<00:00, 1.59kbatch/s, auc=0.923, f1_score=0.595, loss=0.265, precision=0.535][A
+ 39%|███▊      | 332/857 [00:00<00:00, 1.67kbatch/s, auc=0.922, f1_score=0.595, loss=0.267, precision=0.534][A
+ 59%|█████▉    | 504/857 [00:00<00:00, 1.69kbatch/s, auc=0.922, f1_score=0.597, loss=0.267, precision=0.536][A
+ 79%|███████▉  | 676/857 [00:00<00:00, 1.70kbatch/s, auc=0.921, f1_score=0.596, loss=0.269, precision=0.535][A
+ 99%|█████████▉| 847/857 [00:00<00:00, 1.69kbatch/s, auc=0.922, f1_score=0.596, loss=0.269, precision=0.535][A 11%|█         | 11/100 [00:06<00:48,  1.84epoch/s, auc=0.922, f1_score=0.596, loss=0.269, precision=0.535, val_auc=0.911, val_f1_score=0.58, val_loss=0.181, val_precision=0.534]100%|██████████| 857/857 [00:00<00:00, 1.57kbatch/s, auc=0.922, f1_score=0.596, loss=0.269, precision=0.535]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 18%|█▊        | 158/857 [00:00<00:00, 1.57kbatch/s, auc=0.923, f1_score=0.596, loss=0.265, precision=0.535][A
+ 39%|███▉      | 333/857 [00:00<00:00, 1.68kbatch/s, auc=0.922, f1_score=0.595, loss=0.267, precision=0.534][A
+ 60%|█████▉    | 510/857 [00:00<00:00, 1.72kbatch/s, auc=0.922, f1_score=0.597, loss=0.267, precision=0.536][A
+ 80%|███████▉  | 685/857 [00:00<00:00, 1.73kbatch/s, auc=0.922, f1_score=0.596, loss=0.269, precision=0.535][A 12%|█▏        | 12/100 [00:07<00:47,  1.86epoch/s, auc=0.922, f1_score=0.596, loss=0.268, precision=0.535, val_auc=0.911, val_f1_score=0.58, val_loss=0.18, val_precision=0.534] 100%|██████████| 857/857 [00:00<00:00, 1.62kbatch/s, auc=0.922, f1_score=0.596, loss=0.268, precision=0.535]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▉        | 161/857 [00:00<00:00, 1.61kbatch/s, auc=0.923, f1_score=0.595, loss=0.264, precision=0.534][A
+ 39%|███▉      | 338/857 [00:00<00:00, 1.70kbatch/s, auc=0.922, f1_score=0.595, loss=0.267, precision=0.534][A
+ 60%|██████    | 515/857 [00:00<00:00, 1.73kbatch/s, auc=0.923, f1_score=0.598, loss=0.266, precision=0.537][A
+ 81%|████████  | 691/857 [00:00<00:00, 1.74kbatch/s, auc=0.922, f1_score=0.596, loss=0.268, precision=0.535][A 13%|█▎        | 13/100 [00:07<00:46,  1.87epoch/s, auc=0.922, f1_score=0.597, loss=0.268, precision=0.536, val_auc=0.911, val_f1_score=0.581, val_loss=0.18, val_precision=0.537]100%|██████████| 857/857 [00:00<00:00, 1.63kbatch/s, auc=0.922, f1_score=0.597, loss=0.268, precision=0.536]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 18%|█▊        | 158/857 [00:00<00:00, 1.58kbatch/s, auc=0.923, f1_score=0.596, loss=0.264, precision=0.535][A
+ 39%|███▉      | 335/857 [00:00<00:00, 1.69kbatch/s, auc=0.923, f1_score=0.596, loss=0.267, precision=0.534][A
+ 60%|█████▉    | 513/857 [00:00<00:00, 1.73kbatch/s, auc=0.923, f1_score=0.598, loss=0.266, precision=0.536][A
+ 81%|████████  | 691/857 [00:00<00:00, 1.75kbatch/s, auc=0.922, f1_score=0.597, loss=0.268, precision=0.535][A 14%|█▍        | 14/100 [00:08<00:45,  1.88epoch/s, auc=0.923, f1_score=0.597, loss=0.268, precision=0.536, val_auc=0.911, val_f1_score=0.582, val_loss=0.18, val_precision=0.537]100%|██████████| 857/857 [00:00<00:00, 1.64kbatch/s, auc=0.923, f1_score=0.597, loss=0.268, precision=0.536]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▉        | 163/857 [00:00<00:00, 1.63kbatch/s, auc=0.923, f1_score=0.596, loss=0.264, precision=0.534][A
+ 40%|███▉      | 341/857 [00:00<00:00, 1.72kbatch/s, auc=0.923, f1_score=0.596, loss=0.266, precision=0.534][A
+ 61%|██████    | 520/857 [00:00<00:00, 1.75kbatch/s, auc=0.923, f1_score=0.599, loss=0.266, precision=0.537][A
+ 81%|████████  | 695/857 [00:00<00:00, 1.61kbatch/s, auc=0.922, f1_score=0.597, loss=0.268, precision=0.535][A 15%|█▌        | 15/100 [00:08<00:46,  1.83epoch/s, auc=0.923, f1_score=0.598, loss=0.268, precision=0.536, val_auc=0.911, val_f1_score=0.582, val_loss=0.18, val_precision=0.537]100%|██████████| 857/857 [00:00<00:00, 1.49kbatch/s, auc=0.923, f1_score=0.598, loss=0.268, precision=0.536]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▉        | 162/857 [00:00<00:00, 1.62kbatch/s, auc=0.924, f1_score=0.596, loss=0.264, precision=0.535][A
+ 39%|███▉      | 337/857 [00:00<00:00, 1.69kbatch/s, auc=0.923, f1_score=0.597, loss=0.266, precision=0.535][A
+ 60%|█████▉    | 512/857 [00:00<00:00, 1.72kbatch/s, auc=0.924, f1_score=0.599, loss=0.266, precision=0.537][A
+ 81%|████████  | 690/857 [00:00<00:00, 1.74kbatch/s, auc=0.923, f1_score=0.598, loss=0.267, precision=0.536][A 16%|█▌        | 16/100 [00:09<00:45,  1.85epoch/s, auc=0.923, f1_score=0.598, loss=0.267, precision=0.536, val_auc=0.912, val_f1_score=0.582, val_loss=0.18, val_precision=0.538]100%|██████████| 857/857 [00:00<00:00, 1.63kbatch/s, auc=0.923, f1_score=0.598, loss=0.267, precision=0.536]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▉        | 162/857 [00:00<00:00, 1.62kbatch/s, auc=0.924, f1_score=0.596, loss=0.263, precision=0.535][A
+ 39%|███▉      | 337/857 [00:00<00:00, 1.69kbatch/s, auc=0.923, f1_score=0.597, loss=0.266, precision=0.535][A
+ 60%|█████▉    | 512/857 [00:00<00:00, 1.72kbatch/s, auc=0.924, f1_score=0.599, loss=0.266, precision=0.537][A
+ 80%|████████  | 688/857 [00:00<00:00, 1.73kbatch/s, auc=0.923, f1_score=0.598, loss=0.267, precision=0.536][A 17%|█▋        | 17/100 [00:09<00:44,  1.87epoch/s, auc=0.923, f1_score=0.598, loss=0.267, precision=0.536, val_auc=0.912, val_f1_score=0.582, val_loss=0.179, val_precision=0.538]100%|██████████| 857/857 [00:00<00:00, 1.63kbatch/s, auc=0.923, f1_score=0.598, loss=0.267, precision=0.536]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▊        | 160/857 [00:00<00:00, 1.60kbatch/s, auc=0.924, f1_score=0.597, loss=0.263, precision=0.536][A
+ 39%|███▉      | 337/857 [00:00<00:00, 1.70kbatch/s, auc=0.923, f1_score=0.597, loss=0.266, precision=0.535][A
+ 60%|█████▉    | 514/857 [00:00<00:00, 1.73kbatch/s, auc=0.924, f1_score=0.599, loss=0.265, precision=0.537][A
+ 80%|████████  | 689/857 [00:00<00:00, 1.74kbatch/s, auc=0.923, f1_score=0.598, loss=0.267, precision=0.536][A 18%|█▊        | 18/100 [00:10<00:43,  1.87epoch/s, auc=0.923, f1_score=0.598, loss=0.267, precision=0.536, val_auc=0.912, val_f1_score=0.581, val_loss=0.179, val_precision=0.536]100%|██████████| 857/857 [00:00<00:00, 1.62kbatch/s, auc=0.923, f1_score=0.598, loss=0.267, precision=0.536]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▉        | 162/857 [00:00<00:00, 1.61kbatch/s, auc=0.924, f1_score=0.597, loss=0.263, precision=0.535][A
+ 40%|███▉      | 339/857 [00:00<00:00, 1.70kbatch/s, auc=0.924, f1_score=0.596, loss=0.265, precision=0.535][A
+ 60%|██████    | 517/857 [00:00<00:00, 1.73kbatch/s, auc=0.924, f1_score=0.599, loss=0.265, precision=0.537][A
+ 81%|████████  | 694/857 [00:00<00:00, 1.75kbatch/s, auc=0.923, f1_score=0.598, loss=0.267, precision=0.536][A 19%|█▉        | 19/100 [00:10<00:42,  1.89epoch/s, auc=0.924, f1_score=0.598, loss=0.267, precision=0.536, val_auc=0.912, val_f1_score=0.582, val_loss=0.179, val_precision=0.536]100%|██████████| 857/857 [00:00<00:00, 1.64kbatch/s, auc=0.924, f1_score=0.598, loss=0.267, precision=0.536]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▊        | 159/857 [00:00<00:00, 1.59kbatch/s, auc=0.925, f1_score=0.598, loss=0.262, precision=0.536][A
+ 39%|███▉      | 336/857 [00:00<00:00, 1.69kbatch/s, auc=0.924, f1_score=0.596, loss=0.265, precision=0.535][A
+ 60%|█████▉    | 513/857 [00:00<00:00, 1.73kbatch/s, auc=0.924, f1_score=0.599, loss=0.265, precision=0.537][A
+ 81%|████████  | 691/857 [00:00<00:00, 1.75kbatch/s, auc=0.923, f1_score=0.598, loss=0.267, precision=0.536][A 20%|██        | 20/100 [00:11<00:42,  1.89epoch/s, auc=0.924, f1_score=0.598, loss=0.266, precision=0.536, val_auc=0.912, val_f1_score=0.58, val_loss=0.179, val_precision=0.535] 100%|██████████| 857/857 [00:00<00:00, 1.62kbatch/s, auc=0.924, f1_score=0.598, loss=0.266, precision=0.536]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 18%|█▊        | 156/857 [00:00<00:00, 1.55kbatch/s, auc=0.925, f1_score=0.597, loss=0.263, precision=0.536][A
+ 39%|███▊      | 332/857 [00:00<00:00, 1.67kbatch/s, auc=0.924, f1_score=0.597, loss=0.264, precision=0.535][A
+ 60%|█████▉    | 510/857 [00:00<00:00, 1.72kbatch/s, auc=0.924, f1_score=0.599, loss=0.265, precision=0.537][A
+ 80%|████████  | 687/857 [00:00<00:00, 1.74kbatch/s, auc=0.924, f1_score=0.598, loss=0.266, precision=0.536][A 21%|██        | 21/100 [00:11<00:41,  1.89epoch/s, auc=0.924, f1_score=0.598, loss=0.266, precision=0.537, val_auc=0.912, val_f1_score=0.58, val_loss=0.179, val_precision=0.535]100%|██████████| 857/857 [00:00<00:00, 1.62kbatch/s, auc=0.924, f1_score=0.598, loss=0.266, precision=0.537]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▊        | 160/857 [00:00<00:00, 1.59kbatch/s, auc=0.925, f1_score=0.597, loss=0.262, precision=0.536][A
+ 39%|███▉      | 334/857 [00:00<00:00, 1.68kbatch/s, auc=0.924, f1_score=0.597, loss=0.265, precision=0.535][A
+ 60%|█████▉    | 510/857 [00:00<00:00, 1.71kbatch/s, auc=0.924, f1_score=0.599, loss=0.265, precision=0.537][A
+ 80%|████████  | 687/857 [00:00<00:00, 1.73kbatch/s, auc=0.924, f1_score=0.598, loss=0.266, precision=0.536][A 22%|██▏       | 22/100 [00:12<00:41,  1.89epoch/s, auc=0.924, f1_score=0.599, loss=0.266, precision=0.537, val_auc=0.912, val_f1_score=0.58, val_loss=0.179, val_precision=0.536]100%|██████████| 857/857 [00:00<00:00, 1.62kbatch/s, auc=0.924, f1_score=0.599, loss=0.266, precision=0.537]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▉        | 163/857 [00:00<00:00, 1.62kbatch/s, auc=0.925, f1_score=0.597, loss=0.262, precision=0.535][A
+ 40%|███▉      | 340/857 [00:00<00:00, 1.70kbatch/s, auc=0.924, f1_score=0.597, loss=0.264, precision=0.535][A
+ 60%|██████    | 516/857 [00:00<00:00, 1.73kbatch/s, auc=0.925, f1_score=0.6, loss=0.264, precision=0.538]  [A
+ 81%|████████  | 692/857 [00:00<00:00, 1.74kbatch/s, auc=0.924, f1_score=0.599, loss=0.266, precision=0.537][A 23%|██▎       | 23/100 [00:12<00:40,  1.90epoch/s, auc=0.924, f1_score=0.599, loss=0.266, precision=0.537, val_auc=0.912, val_f1_score=0.58, val_loss=0.179, val_precision=0.536]100%|██████████| 857/857 [00:00<00:00, 1.63kbatch/s, auc=0.924, f1_score=0.599, loss=0.266, precision=0.537]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▉        | 161/857 [00:00<00:00, 1.60kbatch/s, auc=0.925, f1_score=0.598, loss=0.262, precision=0.536][A
+ 39%|███▉      | 338/857 [00:00<00:00, 1.70kbatch/s, auc=0.924, f1_score=0.598, loss=0.264, precision=0.536][A
+ 60%|█████▉    | 514/857 [00:00<00:00, 1.73kbatch/s, auc=0.925, f1_score=0.6, loss=0.264, precision=0.538]  [A
+ 80%|████████  | 689/857 [00:00<00:00, 1.73kbatch/s, auc=0.924, f1_score=0.599, loss=0.266, precision=0.537][A 24%|██▍       | 24/100 [00:13<00:40,  1.90epoch/s, auc=0.924, f1_score=0.599, loss=0.266, precision=0.537, val_auc=0.913, val_f1_score=0.581, val_loss=0.179, val_precision=0.535]100%|██████████| 857/857 [00:00<00:00, 1.63kbatch/s, auc=0.924, f1_score=0.599, loss=0.266, precision=0.537]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▉        | 162/857 [00:00<00:00, 1.62kbatch/s, auc=0.925, f1_score=0.598, loss=0.262, precision=0.536][A
+ 40%|███▉      | 340/857 [00:00<00:00, 1.71kbatch/s, auc=0.925, f1_score=0.598, loss=0.264, precision=0.535][A
+ 60%|██████    | 518/857 [00:00<00:00, 1.74kbatch/s, auc=0.925, f1_score=0.601, loss=0.264, precision=0.538][A
+ 81%|████████▏ | 697/857 [00:00<00:00, 1.75kbatch/s, auc=0.924, f1_score=0.598, loss=0.266, precision=0.536][A 25%|██▌       | 25/100 [00:13<00:39,  1.90epoch/s, auc=0.924, f1_score=0.599, loss=0.265, precision=0.537, val_auc=0.913, val_f1_score=0.58, val_loss=0.179, val_precision=0.534] 100%|██████████| 857/857 [00:00<00:00, 1.64kbatch/s, auc=0.924, f1_score=0.599, loss=0.265, precision=0.537]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▉        | 162/857 [00:00<00:00, 1.62kbatch/s, auc=0.925, f1_score=0.598, loss=0.261, precision=0.536][A
+ 39%|███▉      | 337/857 [00:00<00:00, 1.69kbatch/s, auc=0.925, f1_score=0.599, loss=0.264, precision=0.536][A
+ 60%|█████▉    | 512/857 [00:00<00:00, 1.72kbatch/s, auc=0.925, f1_score=0.601, loss=0.264, precision=0.538][A
+ 80%|████████  | 689/857 [00:00<00:00, 1.74kbatch/s, auc=0.924, f1_score=0.599, loss=0.265, precision=0.537][A 26%|██▌       | 26/100 [00:14<00:38,  1.90epoch/s, auc=0.925, f1_score=0.599, loss=0.265, precision=0.537, val_auc=0.913, val_f1_score=0.579, val_loss=0.179, val_precision=0.534]100%|██████████| 857/857 [00:00<00:00, 1.63kbatch/s, auc=0.925, f1_score=0.599, loss=0.265, precision=0.537]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▉        | 162/857 [00:00<00:00, 1.61kbatch/s, auc=0.925, f1_score=0.598, loss=0.261, precision=0.536][A
+ 40%|███▉      | 339/857 [00:00<00:00, 1.70kbatch/s, auc=0.925, f1_score=0.598, loss=0.264, precision=0.536][A
+ 60%|██████    | 515/857 [00:00<00:00, 1.73kbatch/s, auc=0.925, f1_score=0.601, loss=0.263, precision=0.538][A
+ 80%|████████  | 688/857 [00:00<00:00, 1.72kbatch/s, auc=0.924, f1_score=0.599, loss=0.265, precision=0.537][A 27%|██▋       | 27/100 [00:15<00:38,  1.90epoch/s, auc=0.925, f1_score=0.599, loss=0.265, precision=0.537, val_auc=0.912, val_f1_score=0.579, val_loss=0.179, val_precision=0.533]100%|██████████| 857/857 [00:00<00:00, 1.62kbatch/s, auc=0.925, f1_score=0.599, loss=0.265, precision=0.537]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 18%|█▊        | 158/857 [00:00<00:00, 1.58kbatch/s, auc=0.926, f1_score=0.599, loss=0.261, precision=0.537][A
+ 39%|███▉      | 334/857 [00:00<00:00, 1.68kbatch/s, auc=0.925, f1_score=0.598, loss=0.264, precision=0.536][A
+ 59%|█████▉    | 508/857 [00:00<00:00, 1.70kbatch/s, auc=0.925, f1_score=0.601, loss=0.264, precision=0.538][A
+ 80%|███████▉  | 684/857 [00:00<00:00, 1.73kbatch/s, auc=0.925, f1_score=0.6, loss=0.265, precision=0.537]  [A 28%|██▊       | 28/100 [00:15<00:38,  1.89epoch/s, auc=0.925, f1_score=0.599, loss=0.265, precision=0.537, val_auc=0.913, val_f1_score=0.58, val_loss=0.179, val_precision=0.534] 100%|██████████| 857/857 [00:00<00:00, 1.62kbatch/s, auc=0.925, f1_score=0.599, loss=0.265, precision=0.537]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▉        | 162/857 [00:00<00:00, 1.61kbatch/s, auc=0.926, f1_score=0.598, loss=0.261, precision=0.535][A
+ 40%|███▉      | 339/857 [00:00<00:00, 1.70kbatch/s, auc=0.925, f1_score=0.598, loss=0.264, precision=0.535][A
+ 60%|██████    | 517/857 [00:00<00:00, 1.74kbatch/s, auc=0.926, f1_score=0.601, loss=0.263, precision=0.538][A
+ 81%|████████  | 694/857 [00:00<00:00, 1.75kbatch/s, auc=0.925, f1_score=0.599, loss=0.265, precision=0.536][A 29%|██▉       | 29/100 [00:16<00:37,  1.90epoch/s, auc=0.925, f1_score=0.599, loss=0.265, precision=0.537, val_auc=0.913, val_f1_score=0.581, val_loss=0.179, val_precision=0.534]100%|██████████| 857/857 [00:00<00:00, 1.64kbatch/s, auc=0.925, f1_score=0.599, loss=0.265, precision=0.537]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 18%|█▊        | 158/857 [00:00<00:00, 1.58kbatch/s, auc=0.926, f1_score=0.599, loss=0.261, precision=0.537][A
+ 39%|███▉      | 335/857 [00:00<00:00, 1.69kbatch/s, auc=0.925, f1_score=0.599, loss=0.263, precision=0.536][A
+ 60%|█████▉    | 513/857 [00:00<00:00, 1.73kbatch/s, auc=0.926, f1_score=0.601, loss=0.263, precision=0.538][A
+ 81%|████████  | 690/857 [00:00<00:00, 1.74kbatch/s, auc=0.925, f1_score=0.599, loss=0.265, precision=0.536][A 30%|███       | 30/100 [00:16<00:36,  1.90epoch/s, auc=0.925, f1_score=0.599, loss=0.265, precision=0.537, val_auc=0.913, val_f1_score=0.583, val_loss=0.179, val_precision=0.535]100%|██████████| 857/857 [00:00<00:00, 1.63kbatch/s, auc=0.925, f1_score=0.599, loss=0.265, precision=0.537]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 18%|█▊        | 158/857 [00:00<00:00, 1.58kbatch/s, auc=0.926, f1_score=0.599, loss=0.261, precision=0.536][A
+ 39%|███▉      | 334/857 [00:00<00:00, 1.68kbatch/s, auc=0.925, f1_score=0.598, loss=0.263, precision=0.535][A
+ 60%|█████▉    | 511/857 [00:00<00:00, 1.72kbatch/s, auc=0.926, f1_score=0.601, loss=0.263, precision=0.537][A
+ 80%|████████  | 688/857 [00:00<00:00, 1.74kbatch/s, auc=0.925, f1_score=0.599, loss=0.265, precision=0.536][A 31%|███       | 31/100 [00:17<00:36,  1.90epoch/s, auc=0.925, f1_score=0.599, loss=0.265, precision=0.537, val_auc=0.913, val_f1_score=0.582, val_loss=0.179, val_precision=0.534]100%|██████████| 857/857 [00:00<00:00, 1.63kbatch/s, auc=0.925, f1_score=0.599, loss=0.265, precision=0.537]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▊        | 160/857 [00:00<00:00, 1.60kbatch/s, auc=0.926, f1_score=0.599, loss=0.26, precision=0.536][A
+ 39%|███▉      | 337/857 [00:00<00:00, 1.70kbatch/s, auc=0.925, f1_score=0.599, loss=0.263, precision=0.536][A
+ 60%|█████▉    | 514/857 [00:00<00:00, 1.73kbatch/s, auc=0.926, f1_score=0.601, loss=0.263, precision=0.538][A
+ 81%|████████  | 691/857 [00:00<00:00, 1.75kbatch/s, auc=0.925, f1_score=0.599, loss=0.265, precision=0.536][A 32%|███▏      | 32/100 [00:17<00:35,  1.90epoch/s, auc=0.925, f1_score=0.599, loss=0.264, precision=0.537, val_auc=0.913, val_f1_score=0.581, val_loss=0.179, val_precision=0.534]100%|██████████| 857/857 [00:00<00:00, 1.64kbatch/s, auc=0.925, f1_score=0.599, loss=0.264, precision=0.537]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▉        | 161/857 [00:00<00:00, 1.61kbatch/s, auc=0.926, f1_score=0.598, loss=0.26, precision=0.535][A
+ 39%|███▉      | 336/857 [00:00<00:00, 1.69kbatch/s, auc=0.926, f1_score=0.599, loss=0.263, precision=0.536][A
+ 60%|█████▉    | 512/857 [00:00<00:00, 1.72kbatch/s, auc=0.926, f1_score=0.601, loss=0.263, precision=0.538][A
+ 81%|████████  | 690/857 [00:00<00:00, 1.74kbatch/s, auc=0.925, f1_score=0.599, loss=0.264, precision=0.536][A 33%|███▎      | 33/100 [00:18<00:35,  1.90epoch/s, auc=0.925, f1_score=0.6, loss=0.264, precision=0.537, val_auc=0.912, val_f1_score=0.582, val_loss=0.179, val_precision=0.534]  100%|██████████| 857/857 [00:00<00:00, 1.63kbatch/s, auc=0.925, f1_score=0.6, loss=0.264, precision=0.537]  
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▉        | 161/857 [00:00<00:00, 1.61kbatch/s, auc=0.926, f1_score=0.598, loss=0.26, precision=0.534][A
+ 39%|███▉      | 336/857 [00:00<00:00, 1.69kbatch/s, auc=0.926, f1_score=0.599, loss=0.263, precision=0.536][A
+ 60%|█████▉    | 512/857 [00:00<00:00, 1.72kbatch/s, auc=0.926, f1_score=0.601, loss=0.263, precision=0.537][A
+ 81%|████████  | 690/857 [00:00<00:00, 1.74kbatch/s, auc=0.925, f1_score=0.599, loss=0.264, precision=0.536][A 34%|███▍      | 34/100 [00:18<00:34,  1.90epoch/s, auc=0.925, f1_score=0.599, loss=0.264, precision=0.536, val_auc=0.912, val_f1_score=0.582, val_loss=0.179, val_precision=0.533]100%|██████████| 857/857 [00:00<00:00, 1.63kbatch/s, auc=0.925, f1_score=0.599, loss=0.264, precision=0.536]
+
+  0%|          | 0.00/857 [00:00<?, ?batch/s][A
+ 19%|█▊        | 160/857 [00:00<00:00, 1.60kbatch/s, auc=0.927, f1_score=0.598, loss=0.26, precision=0.535][A
+ 39%|███▉      | 335/857 [00:00<00:00, 1.68kbatch/s, auc=0.926, f1_score=0.599, loss=0.263, precision=0.536][A
+ 60%|█████▉    | 510/857 [00:00<00:00, 1.71kbatch/s, auc=0.926, f1_score=0.6, loss=0.263, precision=0.537]  [A
+ 80%|████████  | 686/857 [00:00<00:00, 1.73kbatch/s, auc=0.925, f1_score=0.599, loss=0.264, precision=0.536][A 35%|███▌      | 35/100 [00:19<00:34,  1.90epoch/s, auc=0.925, f1_score=0.599, loss=0.264, precision=0.536, val_auc=0.913, val_f1_score=0.582, val_loss=0.179, val_precision=0.533]100%|██████████| 857/857 [00:00<00:00, 1.62kbatch/s, auc=0.925, f1_score=0.599, loss=0.264, precision=0.536]
+ 35%|███▌      | 35/100 [00:19<00:35,  1.82epoch/s, auc=0.925, f1_score=0.599, loss=0.264, precision=0.536, val_auc=0.913, val_f1_score=0.582, val_loss=0.179, val_precision=0.533]
+=== Saved history to 1795382201.json ===
+> Traceback (most recent call last):
+  File "/Users/jahan/Documents/Programming/Bots/routing-approaches/RoutingApproaches/Python/models/v4/mute/../../../machine_learning.py", line 421, in <module>
+    while (command := input("> ")) != "exit":
+EOFError: EOF when reading a line

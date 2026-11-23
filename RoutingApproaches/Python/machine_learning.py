@@ -25,8 +25,9 @@ TEXT_VECTOR_SIZE   = 8
 ROUTING_CUTOFF     = 0.5
 POSITIVE_WEIGHT    = 3.0 # moves the F1-optimal threshold of the unweighted model (~0.25) to ROUTING_CUTOFF
 BATCH_SIZE         = 512
-LEARNING_RATE      = 1e-3
+LEARNING_RATE      = 1e-4
 VALIDATION_SPLIT   = "dev"
+USE_TEXT           = True  # False drops the text branch, leaving a features-only model
 
 SELF_TAG   = "xxself"
 OTHER_TAG  = "xxother"
@@ -245,24 +246,31 @@ class MachineLearning:
         """
         Gives the model architecture
         """
-        text_input           = keras.Input(shape=(HISTORY, TOKENS_PER_MESSAGE,), dtype="int32",   name="text")
         features_input       = keras.Input(shape=(FEATURE_COUNT,),               dtype="float32", name="features")
-
-        text = keras.layers.Embedding             (self.vocab_size + 1, TEXT_VECTOR_SIZE)(      text_input)
-        text =              MessagePooling        (                                     )(text, text_input)
-        text = keras.layers.Dropout               (0.5                                  )(text            )
-        text = keras.layers.LSTM                  (TEXT_VECTOR_SIZE                     )(text            )
-        text = keras.layers.Dropout               (0.5                                  )(text            ) # text branch overfits fast otherwise
 
         features = keras.layers.Dense(64, activation="relu")(features_input)
         features = keras.layers.Dense(32, activation="relu")(features      )
 
-        inner = keras.layers.Concatenate()([text, features])
+        if USE_TEXT:
+            text_input = keras.Input(shape=(HISTORY, TOKENS_PER_MESSAGE,), dtype="int32", name="text")
+
+            text = keras.layers.Embedding             (self.vocab_size + 1, TEXT_VECTOR_SIZE)(      text_input)
+            text =              MessagePooling        (                                     )(text, text_input)
+            text = keras.layers.Dropout               (0.5                                  )(text            )
+            text = keras.layers.LSTM                  (TEXT_VECTOR_SIZE                     )(text            )
+            text = keras.layers.Dropout               (0.5                                  )(text            ) # text branch overfits fast otherwise
+
+            inner  = keras.layers.Concatenate()([text, features])
+            inputs = [text_input, features_input]
+        else:
+            inner  = features
+            inputs = [features_input]
+
         inner = keras.layers.Dense(32, activation="relu"   )(inner)
         inner = keras.layers.Dense(16, activation="relu"   )(inner)
         out   = keras.layers.Dense(1,  activation="sigmoid")(inner)
 
-        return keras.Model(inputs=[text_input, features_input], outputs=out)
+        return keras.Model(inputs=inputs, outputs=out)
 
     def clean_text(self, message: Message, person: str) -> str:
         """
@@ -280,10 +288,12 @@ class MachineLearning:
         if len(window) < HISTORY:
             raise ValueError(f"Expected at least {HISTORY} messages, got {len(window)}")
 
-        return {
-            "text"    : np.stack([self.tokenize(self.clean_text(m, person)) for m in window[-HISTORY:]]).astype("int32"),
-            "features": np.array(self.compute_features(window[-FEATURE_HISTORY:], person), dtype="float32")
-        }
+        point = {"features": np.array(self.compute_features(window[-FEATURE_HISTORY:], person), dtype="float32")}
+
+        if USE_TEXT:
+            point["text"] = np.stack([self.tokenize(self.clean_text(m, person)) for m in window[-HISTORY:]]).astype("int32")
+
+        return point
 
     def format_data(self, logs: list[MessagedLog]) -> tuple[dict[str, np.ndarray], np.ndarray]:
         """
@@ -310,17 +320,18 @@ class MachineLearning:
                     for person in authors:
                         point = self.prepare_point(window, person)
 
-                        x_text    .append(point["text"    ])
+                        if USE_TEXT:
+                            x_text.append(point["text"])
+
                         x_features.append(point["features"])
                         t         .append(person in message.responders)
 
-        return (
-            {
-                "text"    : np.array(x_text,     dtype="int32"  ),
-                "features": np.array(x_features, dtype="float32")
-            },
-            np.array(t, dtype="float32").reshape(-1, 1)
-        )
+        x = {"features": np.array(x_features, dtype="float32")}
+
+        if USE_TEXT:
+            x["text"] = np.array(x_text, dtype="int32")
+
+        return x, np.array(t, dtype="float32").reshape(-1, 1)
 
     def train_model(self) -> tuple[keras.Model, dict]:
         """
