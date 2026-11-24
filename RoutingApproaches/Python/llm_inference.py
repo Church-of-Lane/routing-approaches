@@ -4,13 +4,18 @@ Prompts the best LLM setup from llm_harness.py to score whether a candidate repl
 Best setup: prompt v0 on gemma4:e4b (run locally with Ollama: `ollama pull gemma4:e4b`). On the harness's balanced
 training subset it had the best F1 (0.828) and AUC (0.870) of every prompt and model tried. llama3.2:3b's best was F1 0.565 / AUC 0.606.
 
-    python llm_inference.py [sample] [candidate]   score the test set sample (test_sample.txt, for crimsun)
-    python llm_inference.py --eval [workers]       score every point in the full test set, and write llm_eval.csv
+    python llm_inference.py [sample] [candidate]                 score the test set sample (test_sample.txt, for crimsun)
+    python llm_inference.py --eval [workers] [--points A-B]      score the full test set, and write llm_eval.csv
 
 --eval is ~30k LLM calls (~3 s each on gemma4:e4b), so every response is appended to
 llm/runs/gemma_v0_test.jsonl as it comes in, and a rerun picks up where the last one stopped.
 llm_eval.csv is written once every point has a response. With workers > 1, that many requests run at once
 (start Ollama with OLLAMA_NUM_PARALLEL set to at least that many, or they just queue).
+
+--points A-B only scores test points A to B (1-based and inclusive, e.g. 1-1000), in the same fixed order
+every time (log, then line, then candidate), so the test set can be done in chunks. A B past the last
+point stops at the last point. Chunks run on different machines can be combined by appending one run file's
+result lines (everything but its first, setup, line) to the other's.
 """
 
 import json
@@ -62,16 +67,40 @@ def load_done(path: Path, setup: dict) -> dict[str, dict]:
     return {result["id"]: result for result in lines[1:]}
 
 
-def evaluate(workers: int = 1) -> None:
+def parse_range(text: str) -> tuple[int, int]:
+    """
+    "A-B" -> (A, B), 1-based and inclusive
+    """
+    try:
+        first, last = (int(part) for part in text.split("-"))
+    except ValueError:
+        raise SystemExit(f"--points takes a range like 1-1000, not {text!r}")
+
+    if not 1 <= first <= last:
+        raise SystemExit(f"--points {text}: needs 1 <= A <= B")
+
+    return first, last
+
+
+def evaluate(workers: int = 1, points_range: tuple[int, int] | None = None) -> None:
     points = test_points(CANDIDATE_POOL)
     rows   = [point_row(point) for point in points]
     setup  = {"model": MODEL, "options": OPTIONS, "schema": SCHEMA, "prompt": PROMPT}
 
+    first, last = points_range or (1, len(rows))
+    last = min(last, len(rows))
+    if first > len(rows):
+        raise SystemExit(f"--points starts at {first}, but the test set only has {len(rows)} points")
+
     TEST_RUN.parent.mkdir(parents=True, exist_ok=True)
     done = load_done(TEST_RUN, setup)
-    todo = [row for row in rows if row["id"] not in done]
 
-    print(f"=== {MODEL} {BEST_VERSION}: {len(done)} of {len(rows)} test points already scored, {len(todo)} to go ===")
+    # (point number, row) for every point in the range without a response yet
+    todo = [(number, row) for number, row in enumerate(rows, start=1)
+            if first <= number <= last and row["id"] not in done]
+
+    print(f"=== {MODEL} {BEST_VERSION}: {len(done)} of {len(rows)} test points already scored. "
+          f"Points {first}-{last}: {len(todo)} to go ===")
     print(f"=== The exact prompt for {rows[0]['id']} ===\n{fill(PROMPT, rows[0])}\n=====")
 
     # rewritten from what loaded, so it's always the setup line followed by whole results
@@ -82,8 +111,8 @@ def evaluate(workers: int = 1) -> None:
         file.flush()
 
         # map keeps the order, and only this thread writes, so the file is never interleaved
-        for number, (row, (prediction, response, seconds)) in enumerate(
-                zip(todo, pool.map(lambda row: predict(PROMPT, row, MODEL), todo)), start=1):
+        for count, ((number, row), (prediction, response, seconds)) in enumerate(
+                zip(todo, pool.map(lambda item: predict(PROMPT, item[1], MODEL), todo)), start=1):
             result = {
                 "id": row["id"],
                 "prediction": prediction,
@@ -95,7 +124,14 @@ def evaluate(workers: int = 1) -> None:
             file.flush()
             done[row["id"]] = result
 
-            print(f"[{len(done)}/{len(rows)}] {row['id']}: {prediction or 'INVALID'} ({seconds:.1f} s)")
+            print(f"[point {number}, {count}/{len(todo)} this run, {len(done)}/{len(rows)} total] "
+                  f"{row['id']}: {prediction or 'INVALID'} ({seconds:.1f} s)")
+
+    missing = [number for number, row in enumerate(rows, start=1) if row["id"] not in done]
+    if missing:
+        print(f"=== {len(rows) - len(missing)} of {len(rows)} test points scored, so llm_eval.csv isn't written yet. "
+              f"{len(missing)} missing, the first being point {missing[0]} ===")
+        return
 
     invalid = sum(done[row["id"]]["prediction"] is None for row in rows)
     print(f"=== {invalid} invalid outputs, scored as 0 ===")
@@ -106,8 +142,19 @@ def evaluate(workers: int = 1) -> None:
 if __name__ == "__main__":
     from sys import argv
 
-    if argv[1:2] == ["--eval"]:
-        evaluate(int(argv[2]) if len(argv) > 2 else 1)
+    args = argv[1:]
+    points_range = None
+    if "--points" in args:
+        at = args.index("--points")
+        if at + 1 >= len(args):
+            raise SystemExit("--points takes a range like 1-1000")
+        points_range = parse_range(args[at + 1])
+        del args[at:at + 2]
+
+    if args[:1] == ["--eval"]:
+        evaluate(int(args[1]) if len(args) > 1 else 1, points_range)
+    elif points_range is not None:
+        raise SystemExit("--points only works with --eval")
     else:
         sample    = Path(argv[1]) if len(argv) > 1 else TEST_SAMPLE
         candidate = argv[2]       if len(argv) > 2 else TEST_SAMPLE_CANDIDATE
