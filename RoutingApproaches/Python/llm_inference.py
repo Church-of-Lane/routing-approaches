@@ -69,18 +69,29 @@ def numbered(path: Path, number: int) -> Path:
     return path if number == 1 else path.with_name(f"{path.stem}_{number}{path.suffix}")
 
 
-def read_lines(path: Path) -> list[dict]:
+SETUP_KEYS = {"model", "options", "schema", "prompt"}
+
+
+def read_lines(path: Path) -> list[tuple[int, object]]:
     """
-    Every line of a run file. A line cut off by a crash is dropped
+    Every line of a run file, with its line number. A line cut off by a crash (or still being written) is dropped
     """
     lines = []
-    with open(path, encoding="utf-8") as file:
-        for line in file:
+    with open(path, encoding="utf-8", errors="replace") as file:
+        for number, line in enumerate(file, start=1):
             try:
-                lines.append(json.loads(line))
+                lines.append((number, json.loads(line)))
             except json.JSONDecodeError:
                 pass
     return lines
+
+
+def is_setup(line: object) -> bool:
+    return isinstance(line, dict) and set(line) == SETUP_KEYS
+
+
+def is_result(line: object) -> bool:
+    return isinstance(line, dict) and isinstance(line.get("id"), str)
 
 
 def run_folder(number: int) -> Path:
@@ -109,10 +120,30 @@ def load_responses(number: int, setup: dict) -> dict[str, dict] | None:
         lines = read_lines(path)
         if not lines:
             continue
-        if lines[0] != setup:
+        if lines[0][1] != setup:
             return None
-        for result in lines[1:]:
-            responses.setdefault(result["id"], result)
+
+        # A file can have more setup lines further down, e.g. from two run files being joined. Results
+        # count only while the latest setup line above them is this setup
+        current = setup
+        other   = 0
+        stray   = []
+
+        for line_number, line in lines[1:]:
+            if is_setup(line):
+                current = line
+            elif not is_result(line):
+                stray.append(line_number)
+            elif current == setup:
+                responses.setdefault(line["id"], line)
+            else:
+                other += 1
+
+        if other:
+            print(f"Warning: {path} has {other} results under a different setup line, so they're skipped")
+        if stray:
+            print(f"Warning: {path} has {len(stray)} lines that aren't results or setups, so they're skipped "
+                  f"(line{'s' if len(stray) > 1 else ''} {', '.join(map(str, stray[:10]))}{', ...' if len(stray) > 10 else ''})")
 
     return responses
 
