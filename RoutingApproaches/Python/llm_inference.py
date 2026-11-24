@@ -9,6 +9,10 @@ training subset it had the best F1 (0.828) and AUC (0.870) of every prompt and m
 
 --eval is ~30k LLM calls (~3 s each on gemma4:e4b), so every response is appended to
 llm/runs/gemma_v0_test.jsonl as it comes in, and a rerun picks up where the last one stopped.
+The first line of a run file records the setup (model, options, schema and prompt). If gemma_v0_test.jsonl was made
+with a different setup, the run goes to gemma_v0_test_2.jsonl instead (or _3, and so on): whichever has this exact
+setup, or else the first that doesn't exist yet. Its CSV gets the same number (llm_eval_2.csv), so no setup's
+results overwrite another's. eval.py reads llm_eval.csv.
 llm_eval.csv is written once every point has a response. With workers > 1, that many requests run at once
 (start Ollama with OLLAMA_NUM_PARALLEL set to at least that many, or they just queue).
 
@@ -46,13 +50,17 @@ def llm_predict(lines: list[str], candidate: str) -> tuple[float, str]:
     return score(prediction), response.message.content
 
 
-def load_done(path: Path, setup: dict) -> dict[str, dict]:
+def numbered(path: Path, number: int) -> Path:
     """
-    Responses already saved for this exact setup, by point id. A line cut off by a crash is dropped
+    path for number 1, and path with _<number> before its extension after that
     """
-    if not path.exists():
-        return {}
+    return path if number == 1 else path.with_name(f"{path.stem}_{number}{path.suffix}")
 
+
+def read_lines(path: Path) -> list[dict]:
+    """
+    Every line of a run file. A line cut off by a crash is dropped
+    """
     lines = []
     with open(path, encoding="utf-8") as file:
         for line in file:
@@ -60,11 +68,24 @@ def load_done(path: Path, setup: dict) -> dict[str, dict]:
                 lines.append(json.loads(line))
             except json.JSONDecodeError:
                 pass
+    return lines
 
-    if lines and lines[0] != setup:
-        raise SystemExit(f"{path} was made with a different model, options or prompt. Move it aside to start over.")
 
-    return {result["id"]: result for result in lines[1:]}
+def find_run(setup: dict) -> tuple[int, dict[str, dict]]:
+    """
+    The number of the run file for this exact setup, and its saved responses by point id. That's the first of
+    TEST_RUN, TEST_RUN_2, ... made with this setup, or else the first that doesn't exist yet (a new run)
+    """
+    number = 1
+    while (path := numbered(TEST_RUN, number)).exists():
+        lines = read_lines(path)
+        if not lines or lines[0] == setup:
+            return number, {result["id"]: result for result in lines[1:]}
+
+        print(f"{path.name} was made with a different setup, so it's left alone")
+        number += 1
+
+    return number, {}
 
 
 def parse_range(text: str) -> tuple[int, int]:
@@ -93,7 +114,10 @@ def evaluate(workers: int = 1, points_range: tuple[int, int] | None = None) -> N
         raise SystemExit(f"--points starts at {first}, but the test set only has {len(rows)} points")
 
     TEST_RUN.parent.mkdir(parents=True, exist_ok=True)
-    done = load_done(TEST_RUN, setup)
+    number, done = find_run(setup)
+    run_path = numbered(TEST_RUN, number)
+    csv_path = numbered(LLM_EVAL_CSV, number)
+    print(f"=== Saving responses to {run_path} ===")
 
     # (point number, row) for every point in the range without a response yet
     todo = [(number, row) for number, row in enumerate(rows, start=1)
@@ -104,7 +128,7 @@ def evaluate(workers: int = 1, points_range: tuple[int, int] | None = None) -> N
     print(f"=== The exact prompt for {rows[0]['id']} ===\n{fill(PROMPT, rows[0])}\n=====")
 
     # rewritten from what loaded, so it's always the setup line followed by whole results
-    with open(TEST_RUN, "w", encoding="utf-8") as file, ThreadPoolExecutor(workers) as pool:
+    with open(run_path, "w", encoding="utf-8") as file, ThreadPoolExecutor(workers) as pool:
         file.write(json.dumps(setup) + "\n")
         for result in done.values():
             file.write(json.dumps(result) + "\n")
@@ -129,14 +153,14 @@ def evaluate(workers: int = 1, points_range: tuple[int, int] | None = None) -> N
 
     missing = [number for number, row in enumerate(rows, start=1) if row["id"] not in done]
     if missing:
-        print(f"=== {len(rows) - len(missing)} of {len(rows)} test points scored, so llm_eval.csv isn't written yet. "
+        print(f"=== {len(rows) - len(missing)} of {len(rows)} test points scored, so {csv_path.name} isn't written yet. "
               f"{len(missing)} missing, the first being point {missing[0]} ===")
         return
 
     invalid = sum(done[row["id"]]["prediction"] is None for row in rows)
     print(f"=== {invalid} invalid outputs, scored as 0 ===")
 
-    write_eval_csv(LLM_EVAL_CSV, points, [score(done[row["id"]]["prediction"]) for row in rows], ROUTING_CUTOFF)
+    write_eval_csv(csv_path, points, [score(done[row["id"]]["prediction"]) for row in rows], ROUTING_CUTOFF)
 
 
 if __name__ == "__main__":
