@@ -7,22 +7,34 @@ training subset it had the best F1 (0.828) and AUC (0.870) of every prompt and m
     python llm_inference.py [sample] [candidate]                 score the test set sample (test_sample.txt, for crimsun)
     python llm_inference.py --eval [workers] [--points A-B]      score the full test set, and write llm_eval.csv
 
---eval is ~30k LLM calls (~3 s each on gemma4:e4b), so every response is appended to
-llm/runs/gemma_v0_test.jsonl as it comes in, and a rerun picks up where the last one stopped.
-The first line of a run file records the setup (model, options, schema and prompt). If gemma_v0_test.jsonl was made
-with a different setup, the run goes to gemma_v0_test_2.jsonl instead (or _3, and so on): whichever has this exact
-setup, or else the first that doesn't exist yet. Its CSV gets the same number (llm_eval_2.csv), so no setup's
-results overwrite another's. eval.py reads llm_eval.csv.
-llm_eval.csv is written once every point has a response. With workers > 1, that many requests run at once
-(start Ollama with OLLAMA_NUM_PARALLEL set to at least that many, or they just queue).
+--eval is ~30k LLM calls (~3 s each on gemma4:e4b), so every response is saved as it comes in, and a rerun
+skips every point that already has one. With workers > 1, that many requests run at once (start Ollama with
+OLLAMA_NUM_PARALLEL set to at least that many, or they just queue).
 
 --points A-B only scores test points A to B (1-based and inclusive, e.g. 1-1000), in the same fixed order
 every time (log, then line, then candidate), so the test set can be done in chunks. A B past the last
-point stops at the last point. Chunks run on different machines can be combined by appending one run file's
-result lines (everything but its first, setup, line) to the other's.
+point stops at the last point.
+
+Several instances can run at once, on one machine or on many sharing the same storage. Each one writes only to its
+own file, llm/runs/gemma_v0_test/<host>-<pid>-<start time>.jsonl, so no file ever has two writers. Every instance
+reads all the files in that folder to skip points that are already done, and the one that finds every point done
+writes llm_eval.csv. Give instances ranges that don't overlap: ones that do will score the same points twice
+(harmless, but wasted; the first response saved for a point is the one used). Shared storage can be a little slow to
+show one machine's writes to another, so if the last instances finish together and none writes llm_eval.csv,
+run --eval once more: with nothing left to score, it just writes the CSV.
+
+The first line of every run file records the setup (model, options, schema and prompt). If the files in
+gemma_v0_test/ were made with a different setup, the run goes to gemma_v0_test_2/ instead (or _3, and so on):
+whichever has this exact setup, or else the first that doesn't exist yet. Its CSV gets the same number
+(llm_eval_2.csv), so no setup's results overwrite another's. eval.py reads llm_eval.csv.
+A single llm/runs/gemma_v0_test.jsonl from before run folders existed is read as part of gemma_v0_test/, but never written to.
 """
 
 import json
+import os
+import re
+import socket
+import time
 from concurrent.futures import ThreadPoolExecutor
 from pathlib import Path
 
@@ -71,21 +83,69 @@ def read_lines(path: Path) -> list[dict]:
     return lines
 
 
+def run_folder(number: int) -> Path:
+    """
+    The folder of run files for setup number: gemma_v0_test/, gemma_v0_test_2/, ...
+    """
+    return numbered(TEST_RUN, number).with_suffix("")
+
+
+def run_files(number: int) -> list[Path]:
+    """
+    Every run file for setup number: the old single file, if there is one, and every instance's file in its folder
+    """
+    old = numbered(TEST_RUN, number)
+    return ([old] if old.exists() else []) + sorted(run_folder(number).glob("*.jsonl"))
+
+
+def load_responses(number: int, setup: dict) -> dict[str, dict] | None:
+    """
+    Every saved response for setup number, by point id (the first saved, if a point has several),
+    or None if any of its files was made with a different setup. Files with no lines yet are skipped
+    """
+    responses = {}
+
+    for path in run_files(number):
+        lines = read_lines(path)
+        if not lines:
+            continue
+        if lines[0] != setup:
+            return None
+        for result in lines[1:]:
+            responses.setdefault(result["id"], result)
+
+    return responses
+
+
 def find_run(setup: dict) -> tuple[int, dict[str, dict]]:
     """
-    The number of the run file for this exact setup, and its saved responses by point id. That's the first of
-    TEST_RUN, TEST_RUN_2, ... made with this setup, or else the first that doesn't exist yet (a new run)
+    The setup number for this exact setup, and its saved responses by point id. That's the first of
+    gemma_v0_test, gemma_v0_test_2, ... made with this setup, or else the first with no files yet (a new run)
     """
     number = 1
-    while (path := numbered(TEST_RUN, number)).exists():
-        lines = read_lines(path)
-        if not lines or lines[0] == setup:
-            return number, {result["id"]: result for result in lines[1:]}
+    while run_files(number):
+        responses = load_responses(number, setup)
+        if responses is not None:
+            return number, responses
 
-        print(f"{path.name} was made with a different setup, so it's left alone")
+        print(f"{run_folder(number).name} was made with a different setup, so it's left alone")
         number += 1
 
     return number, {}
+
+
+def instance_name() -> str:
+    """
+    This machine and process, safe to put in a filename
+    """
+    return f"{re.sub(r'[^A-Za-z0-9_.-]', '_', socket.gethostname()) or 'host'}-{os.getpid()}"
+
+
+def own_file(number: int) -> Path:
+    """
+    A file only this instance writes: named by machine, process and start time, so no other instance picks the same one
+    """
+    return run_folder(number) / f"{instance_name()}-{time.strftime('%Y%m%d-%H%M%S')}.jsonl"
 
 
 def parse_range(text: str) -> tuple[int, int]:
@@ -113,43 +173,46 @@ def evaluate(workers: int = 1, points_range: tuple[int, int] | None = None) -> N
     if first > len(rows):
         raise SystemExit(f"--points starts at {first}, but the test set only has {len(rows)} points")
 
-    TEST_RUN.parent.mkdir(parents=True, exist_ok=True)
-    number, done = find_run(setup)
-    run_path = numbered(TEST_RUN, number)
-    csv_path = numbered(LLM_EVAL_CSV, number)
-    print(f"=== Saving responses to {run_path} ===")
+    run_number, done = find_run(setup)
+    csv_path = numbered(LLM_EVAL_CSV, run_number)
 
     # (point number, row) for every point in the range without a response yet
     todo = [(number, row) for number, row in enumerate(rows, start=1)
             if first <= number <= last and row["id"] not in done]
 
-    print(f"=== {MODEL} {BEST_VERSION}: {len(done)} of {len(rows)} test points already scored. "
-          f"Points {first}-{last}: {len(todo)} to go ===")
-    print(f"=== The exact prompt for {rows[0]['id']} ===\n{fill(PROMPT, rows[0])}\n=====")
+    print(f"=== {MODEL} {BEST_VERSION}: {len(done)} of {len(rows)} test points already scored "
+          f"(in {run_folder(run_number)}). Points {first}-{last}: {len(todo)} to go ===")
 
-    # rewritten from what loaded, so it's always the setup line followed by whole results
-    with open(run_path, "w", encoding="utf-8") as file, ThreadPoolExecutor(workers) as pool:
-        file.write(json.dumps(setup) + "\n")
-        for result in done.values():
-            file.write(json.dumps(result) + "\n")
-        file.flush()
+    if todo:
+        path = own_file(run_number)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        print(f"=== Saving responses to {path} ===")
+        print(f"=== The exact prompt for {todo[0][1]['id']} ===\n{fill(PROMPT, todo[0][1])}\n=====")
 
-        # map keeps the order, and only this thread writes, so the file is never interleaved
-        for count, ((number, row), (prediction, response, seconds)) in enumerate(
-                zip(todo, pool.map(lambda item: predict(PROMPT, item[1], MODEL), todo)), start=1):
-            result = {
-                "id": row["id"],
-                "prediction": prediction,
-                "raw": response.message.content,
-                "seconds": round(seconds, 2),
-                "prompt_tokens": response.prompt_eval_count,
-            }
-            file.write(json.dumps(result) + "\n")
-            file.flush()
-            done[row["id"]] = result
+        # "x" fails if the file already exists, so this instance is certainly its only writer
+        with open(path, "x", encoding="utf-8") as file, ThreadPoolExecutor(workers) as pool:
+            save(file, setup)
 
-            print(f"[point {number}, {count}/{len(todo)} this run, {len(done)}/{len(rows)} total] "
-                  f"{row['id']}: {prediction or 'INVALID'} ({seconds:.1f} s)")
+            # map keeps the order, and only this thread writes, so the file is never interleaved
+            for count, ((number, row), (prediction, response, seconds)) in enumerate(
+                    zip(todo, pool.map(lambda item: predict(PROMPT, item[1], MODEL), todo)), start=1):
+                result = {
+                    "id": row["id"],
+                    "prediction": prediction,
+                    "raw": response.message.content,
+                    "seconds": round(seconds, 2),
+                    "prompt_tokens": response.prompt_eval_count,
+                }
+                save(file, result)
+                done.setdefault(row["id"], result)
+
+                print(f"[point {number}, {count}/{len(todo)} this run, {len(done)}/{len(rows)} total] "
+                      f"{row['id']}: {prediction or 'INVALID'} ({seconds:.1f} s)")
+
+    # read everything again, to count what other instances saved while this one ran
+    done = load_responses(run_number, setup)
+    if done is None:
+        raise SystemExit(f"Another instance with a different setup wrote to {run_folder(run_number)}, so it can't be used")
 
     missing = [number for number, row in enumerate(rows, start=1) if row["id"] not in done]
     if missing:
@@ -160,7 +223,20 @@ def evaluate(workers: int = 1, points_range: tuple[int, int] | None = None) -> N
     invalid = sum(done[row["id"]]["prediction"] is None for row in rows)
     print(f"=== {invalid} invalid outputs, scored as 0 ===")
 
-    write_eval_csv(csv_path, points, [score(done[row["id"]]["prediction"]) for row in rows], ROUTING_CUTOFF)
+    # written beside it and then renamed, so an instance finishing at the same time can't leave a mix of both
+    partial = csv_path.with_name(f".{csv_path.name}.{instance_name()}.tmp")
+    write_eval_csv(partial, points, [score(done[row["id"]]["prediction"]) for row in rows], ROUTING_CUTOFF)
+    os.replace(partial, csv_path)
+    print(f"=== Saved as {csv_path} ===")
+
+
+def save(file, line: dict) -> None:
+    """
+    Writes one line all the way to storage, so instances on other machines can see it
+    """
+    file.write(json.dumps(line) + "\n")
+    file.flush()
+    os.fsync(file.fileno())
 
 
 if __name__ == "__main__":
